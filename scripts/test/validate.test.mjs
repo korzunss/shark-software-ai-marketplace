@@ -13,7 +13,7 @@ import { ROOT } from '../lib/common.mjs';
 
 function makeMarketplace(t, { baseDeps, reviewerSkills = ['base:style'], body = '' } = {}) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'validate-test-'));
-  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }));
   const write = (file, text) => {
     fs.mkdirSync(path.dirname(path.join(dir, file)), { recursive: true });
     fs.writeFileSync(path.join(dir, file), text);
@@ -86,4 +86,24 @@ test('mentioning the source project fails, except in NOTICE.md', (t) => {
   ok.write('plugins/reviewer/NOTICE.md', 'Portions adapted from dev-digest (MIT).\n');
   const rerun = spawnSync('node', [path.join(ok.dir, 'scripts', 'validate-marketplace.mjs')], { cwd: ok.dir, encoding: 'utf8' });
   assert.equal(rerun.status, 0, rerun.stdout + rerun.stderr);
+});
+
+test('a change under evals/ needs no version bump; any other change does', (t) => {
+  const r = makeMarketplace(t);
+  const git = (...args) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'commit.gpgsign=false', '-c', 'gc.auto=0', '-c', 'maintenance.auto=false', ...args], { cwd: r.dir, encoding: 'utf8' });
+  const lint = () => spawnSync('node', [path.join(r.dir, 'scripts', 'validate-marketplace.mjs'), '--base', 'HEAD'], {
+    cwd: r.dir, encoding: 'utf8', env: { ...process.env, GITHUB_ACTIONS: '' },
+  });
+  git('init', '--quiet');
+  git('add', '-A');
+  git('commit', '--quiet', '-m', 'base');
+
+  r.write('plugins/reviewer/evals/smoke/prompt.md', 'Review this.\n');
+  const evalsOnly = lint();
+  assert.equal(evalsOnly.status, 0, evalsOnly.stdout + evalsOnly.stderr);
+
+  r.write('plugins/reviewer/agents/reviewer.md', '---\nname: reviewer\ndescription: Reviews code, changed\nskills:\n  - base:style\n---\n');
+  const agentChanged = lint();
+  assert.notEqual(agentChanged.status, 0);
+  assert.match(agentChanged.stdout + agentChanged.stderr, /version was not bumped/);
 });
