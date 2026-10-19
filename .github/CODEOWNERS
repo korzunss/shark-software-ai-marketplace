@@ -1,0 +1,20 @@
+# Code owners. GitHub applies the LAST matching rule, so the order matters:
+# 1) default owner, 2) per-plugin owners, 3) security-sensitive paths last,
+# so they always require the security reviewers, whoever owns the plugin.
+# Turn on "Require review from Code Owners" in branch protection for main.
+
+# 1. Default
+*                               @korzunss
+
+# 2. Per-plugin owners (one line per plugin)
+/plugins/team-conventions/      @korzunss
+
+# 3. Catalog, CI, tooling and security-sensitive files
+/.claude-plugin/                @korzunss
+/.github/                       @korzunss
+/scripts/                       @korzunss
+**/hooks/**                     @korzunss
+**/scripts/**                   @korzunss
+**/bin/**                       @korzunss
+**/.mcp.json                    @korzunss
+**/.lsp.json                    @korzunss

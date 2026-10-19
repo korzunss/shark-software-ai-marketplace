@@ -1,0 +1,60 @@
+name: Validate
+
+# Runs on every pull request with no `paths` filter: a required check that is
+# path-filtered never reports on unrelated PRs and blocks them in "Expected — Waiting".
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Pinned on purpose: a newer CLI can add warnings that fail `--strict`.
+  # Bump deliberately in a separate PR.
+  CLAUDE_CODE_VERSION: "2.1.301"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # the version-bump check needs the merge base
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      - name: Install Claude Code CLI
+        run: npm install --global "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}"
+
+      - name: Validate marketplace (official)
+        run: claude plugin validate . --strict
+
+      - name: Validate plugins and templates (official)
+        run: |
+          for dir in plugins/*/ templates/*/; do
+            [ -d "$dir" ] || continue
+            echo "::group::$dir"
+            claude plugin validate "$dir" --strict
+            echo "::endgroup::"
+          done
+
+      - name: Script tests
+        run: node --test scripts/test/*.test.mjs
+
+      - name: Structural lint
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: node scripts/validate-marketplace.mjs ${BASE_REF:+--base "origin/$BASE_REF"}
+
+      - name: ShellCheck
+        run: find plugins templates -type f \( -name '*.sh' -o -name '*.bash' \) -print0 | xargs -0 -r shellcheck

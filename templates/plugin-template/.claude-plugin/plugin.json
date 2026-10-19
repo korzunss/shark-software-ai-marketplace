@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "plugin-template",
+  "version": "0.1.0",
+  "description": "Plugin template: copy this folder to plugins/<name>/ and replace every plugin-template with the new name.",
+  "author": {
+    "name": "Shark Software",
+    "url": "https://github.com/korzunss"
+  },
+  "homepage": "https://github.com/korzunss/shark-software-ai-marketplace/tree/main/templates/plugin-template",
+  "repository": "https://github.com/korzunss/shark-software-ai-marketplace",
+  "keywords": [
+    "template"
+  ]
+}

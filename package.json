@@ -1,0 +1,16 @@
+{
+  "name": "shark-software-ai-marketplace",
+  "private": true,
+  "description": "Shark Software's Claude Code plugin marketplace. Tooling only: no dependencies.",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "lint": "node scripts/validate-marketplace.mjs --base origin/main",
+    "validate": "npm run lint && claude plugin validate . --strict && for d in plugins/*/ templates/*/; do claude plugin validate \"$d\" --strict || exit 1; done",
+    "test": "node --test scripts/test/*.test.mjs",
+    "release": "node scripts/release.mjs",
+    "rollback": "node scripts/rollback.mjs"
+  }
+}
