@@ -26,4 +26,6 @@ npm run evals -- architecture-review --tag smoke --runs 1 --ablation none --no-p
 
 **Cost.** Every run is a real model call on your account. The agent runs on the model in its frontmatter (`opus`) whatever `--model` says: `--model` changes only the main session that dispatches it. A pilot run cost about $0.40–0.55 and took about 70 s. Use `--ablation none`: a no-plugin arm cannot dispatch the agent at all, so it only doubles the bill. Set `--max-cost-usd` for longer runs.
 
-**Tokens.** `aggregate-result.json` has cost and duration per run but no token counts. For tokens and API/tool calls, pass `--keep-temp` and read the `result` line of each run's `tracePath` (`modelUsage` per model, including the subagent; `num_turns`; `duration_api_ms`).
+**Tokens.** `aggregate-result.json` has cost and duration per run but no token counts. For tokens and API/tool calls, pass `--keep-temp` and run `npm run evals:metrics -- <results dir>/aggregate-result.json --md`: it reads the `result` line of each run's `tracePath` (`modelUsage` per model, including the subagent) and prints medians per case.
+
+**macOS: real git required.** The cases review a git diff. Inside the eval sandbox the `/usr/bin/git` Xcode shim fails, so install git with Homebrew first ([TROUBLESHOOTING.md](../../../docs/TROUBLESHOOTING.md#common-problems)).

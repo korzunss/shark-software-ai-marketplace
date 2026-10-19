@@ -13,31 +13,30 @@ Every case loads `sdd-engineering` together with its four dependency plugins (`p
 
 ## Run
 
-From the repository root, with the repository root as the target. A case may only load plugins below the target directory, so targeting `plugins/sdd-engineering` itself would refuse the dependency entries:
+From the repository root, through the eval wrapper (`scripts/run-evals.mjs`). It copies `sdd-engineering` and its dependencies into a temporary directory, enables them there as a real install does (`engineering-paved-path` ships with `"defaultEnabled": false`, and an eval run enables nothing on its own), and runs `claude plugin eval` against that copy. The source tree is never modified.
 
 ```bash
-claude plugin eval . --eval-dir plugins/sdd-engineering/evals \
-  --scaffold \
-  --allow-tools Bash Write Edit \
+npm run evals -- sdd-engineering \
+  --allow-tools Write Edit \
   --ablation none \
   --model sonnet \
   --no-publish \
   --max-cost-usd 10
 ```
 
-- `--scaffold` runs each case's `scaffold.sh`, which builds a small Node project in a git repo inside the run's empty workspace. The scripts are ours; review them before running someone else's.
-- `--allow-tools Bash Write Edit`: `run-plan` drives the pipeline through `sdd.sh` (Bash) and writes the config and indexes (Write). Bash runs under Claude Code's OS sandbox, confined to the run's workspace.
+- The wrapper always passes `--scaffold` (each case's `scaffold.sh` builds a small Node project in a git repo inside the run's empty workspace; the scripts are ours), `--trust-plugin` and `--allow-tools Bash` (`run-plan` drives the pipeline through `sdd.sh`).
+- `--allow-tools Write Edit`: `run-plan` writes the config proposal and the indexes. Bash runs under Claude Code's OS sandbox, confined to the run's workspace.
 - `--ablation none`: `run-plan` is invoked by its slash command, which does not exist without the plugin, so a no-plugin baseline arm measures nothing useful here.
 - Smoke only: add `--tag smoke`. One case: `--case <name>`. Fewer runs: `--runs 1`.
 
 Results go to `evals/results/<timestamp>/` (`aggregate-result.json`, `report.html`), which is git-ignored.
 
-## Known blocker: `engineering-paved-path` is disabled in the eval sandbox
-
-`engineering-paved-path` ships with `"defaultEnabled": false`, and an eval run enables nothing on its own (`claude plugin eval` prints "nothing in the eval sandbox enables it"). `sdd-engineering` then fails to load with `dependency-unsatisfied: Dependency "engineering-paved-path" is disabled`, and `/sdd-engineering:run-plan` does not exist in the run. The `plugins-loaded` guard turns that into a failing score.
-
-A normal install is not affected: installing `sdd-engineering` writes `"engineering-paved-path@shark-plugins": true` to `enabledPlugins`. Until `defaultEnabled` is dropped from `engineering-paved-path` (or the eval runner gains a way to enable a plugin), these cases cannot pass.
+Running `claude plugin eval` directly, without the wrapper, leaves `engineering-paved-path` disabled: `sdd-engineering` then fails to load with `dependency-unsatisfied`, and the `plugins-loaded` guard turns that into a failing score.
 
 ## Cost
 
 Every run is a real model session on your account, and `smoke-seeded-config-starts-spec` also starts the `spec-creator` subagent. Use `--max-cost-usd` and start with `--runs 1`.
+
+**Tokens and calls.** Run with `--keep-temp`, then `npm run evals:metrics -- <results dir>/aggregate-result.json --md` for per-case medians of cost, latency, tokens, API calls and tool calls.
+
+**macOS: real git required.** Every `sdd.sh` step needs git. Inside the eval sandbox the `/usr/bin/git` Xcode shim fails, so install git with Homebrew first ([TROUBLESHOOTING.md](../../../docs/TROUBLESHOOTING.md#common-problems)).
