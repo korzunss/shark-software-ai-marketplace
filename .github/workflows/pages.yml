@@ -1,0 +1,114 @@
+name: Site
+
+# The catalog site in site/ (Vite + React) on GitHub Pages. Kept apart from
+# validate.yml, which checks the marketplace itself: a red "Site" check means
+# the site broke, never the plugins' harness, and the other way round.
+#
+#   Site / Tests    catalog builder + i18n guards (npm test)
+#   Site / Build    catalog from plugins/ + Vite bundle, report on the run page
+#   Site / Deploy   publishes the build to GitHub Pages (main only)
+#
+# One-time repo setting: Settings → Pages → Source = "GitHub Actions".
+on:
+  # No paths filter on PRs, so "Site / Build" can be a required check: a
+  # path-filtered required check never reports and blocks unrelated PRs.
+  pull_request:
+  push:
+    branches: [main]
+    paths:
+      # Everything site/scripts/build-catalog.mjs reads, plus the site itself.
+      - "site/**"
+      - "plugins/**"
+      - ".claude-plugin/**"
+      - ".github/CODEOWNERS"
+      - "scripts/lib/common.mjs"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# PR runs replace each other; a deploy from main is never cancelled midway.
+concurrency:
+  group: site-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    working-directory: site
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # plugin dates come from git log
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - run: npm ci
+
+      - name: Catalog builder and i18n tests
+        run: npm test
+
+  build:
+    name: Build
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # plugin dates come from git log
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - id: pages
+        if: github.event_name != 'pull_request'
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - run: npm ci
+
+      # configure-pages reports "/<repo>" for a project site ("" with a custom
+      # domain). PRs skip that step and assume the project-site path.
+      - name: Build catalog and site
+        env:
+          BASE_PATH: ${{ github.event_name == 'pull_request' && format('/{0}', github.event.repository.name) || steps.pages.outputs.base_path }}/
+        run: npm run build
+
+      - name: Build report
+        run: node scripts/ci-summary.mjs >> "$GITHUB_STEP_SUMMARY"
+
+      - if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: site/dist
+
+  deploy:
+    name: Deploy
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
