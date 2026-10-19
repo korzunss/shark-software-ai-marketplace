@@ -18,11 +18,16 @@ const GIT_ENV = {
   GIT_AUTHOR_NAME: 'Test', GIT_AUTHOR_EMAIL: 'test@example.com',
   GIT_COMMITTER_NAME: 'Test', GIT_COMMITTER_EMAIL: 'test@example.com',
   GITHUB_ACTIONS: '', GITHUB_OUTPUT: '',
+  // No background `gc --auto` / maintenance after commits: a detached git process still
+  // writing to .git/objects makes the cleanup below fail with ENOTEMPTY (seen on CI).
+  GIT_CONFIG_COUNT: '2',
+  GIT_CONFIG_KEY_0: 'gc.auto', GIT_CONFIG_VALUE_0: '0',
+  GIT_CONFIG_KEY_1: 'maintenance.auto', GIT_CONFIG_VALUE_1: 'false',
 };
 
 function makeRepo(t) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'marketplace-test-'));
-  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }));
   fs.cpSync(ROOT, dir, {
     recursive: true,
     filter: (src) => !['.git', 'node_modules'].includes(path.basename(src)),

@@ -31,6 +31,7 @@ Plugin state lives in `~/.claude/plugins/`: `known_marketplaces.json`, `installe
 | A `--plugin-dir` plugin "overrides" the installed one | A local copy with the same name takes precedence ([#32619](https://github.com/anthropics/claude-code/issues/32619)) | Run without `--plugin-dir` |
 | Identical hooks from two plugins, only one works | Two plugins with the same `name` from different marketplaces | Keep plugin names unique |
 | `release.mjs tag` refuses to run | Not on `main`, or a CHANGELOG section is missing | Tag from an up-to-date `main`; normally the release workflow does it |
+| An eval run stops with `xcode-select: Failed to locate 'git'` or `not inside a git repository` (macOS) | `/usr/bin/git` is the Xcode `xcrun` shim; the eval sandbox blocks the cache file it writes under `/var/folders`, and the sandbox resets `PATH`, so prepending Xcode's git does not help | Install a real git where the sandbox's `PATH` finds it: `brew install git` (`/opt/homebrew/bin/git`). Runs made without it are not valid: diff reviews and every `sdd.sh` step fail |
 | `rollback.mjs`: tag not found | Tags are not fetched locally | `git fetch --tags`, or pass a commit to `--to` |
 
 ## Starting over
