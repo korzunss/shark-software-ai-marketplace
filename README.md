@@ -5,6 +5,8 @@ A private team marketplace of [Claude Code](https://code.claude.com/docs/en/plug
 - Marketplace name: **`shark-plugins`**
 - Plugin id: `<plugin>@shark-plugins`
 
+> **New here?** [docs/USAGE.md](docs/USAGE.md) shows how to add the marketplace, install, use, update and remove plugins, all on one page.
+
 ## Catalog
 
 | Plugin | Version | What it does |
@@ -31,6 +33,8 @@ Then add the marketplace and install a plugin:
 claude plugin marketplace add korzunss/shark-software-ai-marketplace
 claude plugin install sdd-engineering@shark-plugins
 ```
+
+Everything else (using, updating, removing plugins) is in [docs/USAGE.md](docs/USAGE.md).
 
 ### Enable for a whole project team
 
@@ -69,6 +73,7 @@ scripts/test/                     tests for the scripts (node --test)
 
 | Document | Audience |
 |---|---|
+| [docs/USAGE.md](docs/USAGE.md) | **Start here:** add the marketplace, install, use, update, remove |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Adding or changing a plugin |
 | [docs/PLUGIN-GUIDELINES.md](docs/PLUGIN-GUIDELINES.md) | Plugin layout, names, paths, variables |
 | [docs/SECURITY.md](docs/SECURITY.md) | Hooks, MCP, scripts, secrets, review |
