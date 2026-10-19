@@ -5,6 +5,7 @@ Behavior evals for `/sdd-engineering:run-plan`, run with [`claude plugin eval`](
 | Case | Tag | What it proves |
 |---|---|---|
 | `smoke-intake-proposes-config` | smoke | Without `.sdd/config.json`, intake proposes a config built only from commands the project defines, and stops at that question before any spec, plan or code work |
+| `intake-writes-config-proposal` | behavior | Added in 1.1.0. In a headless run, intake writes `.sdd/config.proposed.json` (test command from the project, `lint: null`), never `.sdd/config.json`, names the proposal and the unconfigured commands in its reply, and dispatches no agent. Fails on 1.0.0, which has no proposal file |
 | `smoke-seeded-config-starts-spec` | smoke | With `.sdd/config.json`, intake asks nothing, creates the spec and plan indexes in the **configured** folders, and hands the request to `sdd-engineering:spec-creator` |
 | `negative-unrelated-request` | negative | A one-line rename is done directly: no SDD agent, no `.sdd/`, `specs/` or `docs/plans/` files |
 | `negative-draft-plan-no-implement` | negative | `--resume` on a draft plan stops at the approval gate: no implementer, no source edits, the plan stays `draft` |

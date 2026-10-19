@@ -42,7 +42,7 @@ These paths were resolved when the skill loaded. Use them exactly as written her
 | `--no-retro` | the hand-over skips the automatic retro and logs `retro: skipped (--no-retro)`; it applies to this invocation only, so a `--resume` run must pass it again |
 | `--resume <spec\|plan path>` | re-enter: run `S state <path>`, show its `because:` line, confirm with the user, jump to the stage it names |
 
-**Entry rule.** `intake` always runs first (it makes sure `.sdd/config.json` and the indexes exist). Then: approved spec → `plan-p1`'s stage chain (`research` first unless skipped). Draft spec → a `spec-creator` correction round. Free text → `spec-creator` pass 1. `--resume` → by `S state`, never by memory of the conversation.
+**Entry rule.** `intake` always runs first (it makes sure `.sdd/config.json` and the indexes exist; while `.sdd/config.json` is missing nothing after `intake` runs). Then: approved spec → `plan-p1`'s stage chain (`research` first unless skipped). Draft spec → a `spec-creator` correction round. Free text → `spec-creator` pass 1. `--resume` → by `S state`, never by memory of the conversation.
 
 ## 2. Stages
 
@@ -50,7 +50,7 @@ One row per stage, in order. Gate = what stops the run for the user (AskUserQues
 
 | Stage id | Owner | User gate | Artefact / status change | `sdd.sh` call | Checkpoint |
 |---|---|---|---|---|---|
-| `intake` | main session | AskUserQuestion once if `.sdd/config.json` is missing; otherwise only if arguments are ambiguous | `.sdd/config.json` and the spec/plan indexes exist; project instructions and insights headings read; `--designs`, `figma:`, `--ref-repo` validated | `config` | — |
+| `intake` | main session | `.sdd/config.json` missing: `config-propose` writes `.sdd/config.proposed.json` and its summary is shown; then AskUserQuestion once (accept or edit), or — with no AskUserQuestion (headless, `-p`) — **stop** with the summary; otherwise ask only if arguments are ambiguous | `.sdd/config.json` (only via `config-accept`) and the spec/plan indexes exist; project instructions and insights headings read; `--designs`, `figma:`, `--ref-repo` validated | `config`, `config-propose`, `config-accept` | — |
 | `spec-p1` | `sdd-engineering:spec-creator` | none | blocking questions `B1…` (no file) or straight to the draft | `agent` | — |
 | `spec-answers` | main session | AskUserQuestion per open question | answers written into the spec | — | — |
 | `spec-p2` | `sdd-engineering:spec-creator` | none | `<specsDir>/NNN-*.md` draft + index row, *Open questions* empty | `agent` | — |

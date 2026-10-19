@@ -632,4 +632,46 @@ mkdir -p "${fake_cfg}/projects/${mangled}/sess6/subagents"
 printf '%s\n' '{"timestamp":"2026-01-01T09:00:00Z","message":{"id":"q1","model":"mx","usage":{"input_tokens":1,"output_tokens":1}}}' > "${fake_cfg}/projects/${mangled}/sess6/subagents/agent-f1.jsonl"
 eq "usage-scan finds the project transcript folder under CLAUDE_CONFIG_DIR" "usage-scan: 1 agents, 1 rows, 1 unmatched, 0 skipped lines" "$(CLAUDE_CONFIG_DIR="${fake_cfg}" sdd usage-scan)"
 
+# --- config-propose / config-accept: a proposal file, never .sdd/config.json without accept
+new_repo repo7
+printf '{ "name": "p", "scripts": { "test": "node --test", "lint": "eslint ." } }\n' > package.json
+propose_out="$(sdd config-propose)"
+eq "config-propose writes the proposal file" "yes" "$([ -f .sdd/config.proposed.json ] && echo yes || echo no)"
+eq "config-propose does not write config.json" "no" "$([ -f .sdd/config.json ] && echo yes || echo no)"
+eq "config-propose commands from package.json" "npm test|npm run lint|null|null" "$(node -e '
+const c = JSON.parse(require("fs").readFileSync(".sdd/config.proposed.json", "utf8"));
+console.log([c.commands.test, c.commands.lint, c.commands.typecheck, c.commands.integration].map(String).join("|"));
+')"
+eq "config-propose summary names a missing command" "  typecheck:   not configured" "$(printf '%s\n' "${propose_out}" | grep '^  typecheck:')"
+eq "config-propose default dirs" "specs docs/plans ." "$(node -e '
+const c = JSON.parse(require("fs").readFileSync(".sdd/config.proposed.json", "utf8"));
+console.log(c.specsDir + " " + c.plansDir + " " + c.packages.join(","));
+')"
+eq "config before accept is still defaults" "source=defaults" "$(sdd config | head -1)"
+rm -f package.json
+rmdir specs
+mkdir -p docs/specs packages/a packages/b packages/notapkg
+printf '{ "name": "m", "workspaces": ["packages/*"], "scripts": { "typecheck": "tsc -b" } }\n' > package.json
+printf '{}\n' > packages/a/package.json
+printf '{}\n' > packages/b/package.json
+: > pnpm-lock.yaml
+printf 'test:\n\tgo test ./...\nVAR := 1\n' > Makefile
+sdd config-propose >/dev/null
+eq "config-propose: existing folder, workspaces, pnpm, Makefile fallback" "docs/specs|packages/a,packages/b|pnpm run typecheck|make test|null" "$(node -e '
+const c = JSON.parse(require("fs").readFileSync(".sdd/config.proposed.json", "utf8"));
+console.log([c.specsDir, c.packages.join(","), c.commands.typecheck, c.commands.test, c.commands.lint].map(String).join("|"));
+')"
+eq "config-accept renames the proposal" "sdd: .sdd/config.proposed.json accepted as .sdd/config.json" "$(sdd config-accept)"
+eq "config-accept leaves no proposal behind" "no" "$([ -f .sdd/config.proposed.json ] && echo yes || echo no)"
+eq "config after accept reads the file" "source=.sdd/config.json
+specsDir=docs/specs" "$(sdd config | sed -n 1,2p)"
+eq "config-propose refuses when config.json exists" "2" "$(rc_of bash "${SDD}" config-propose)"
+eq "config-accept refuses when config.json exists" "2" "$(rc_of bash "${SDD}" config-accept)"
+rm -f .sdd/config.json
+eq "config-accept without a proposal exit 2" "2" "$(rc_of bash "${SDD}" config-accept)"
+printf '{ "plansDir": "../x" }\n' > .sdd/config.proposed.json
+eq "config-accept rejects a bad proposal" "2" "$(rc_of bash "${SDD}" config-accept)"
+eq "a rejected proposal is not renamed" "no" "$([ -f .sdd/config.json ] && echo yes || echo no)"
+eq "config-propose bad args exit 2" "2" "$(rc_of bash "${SDD}" config-propose extra)"
+
 echo "selftest: ok"

@@ -4,7 +4,11 @@ Detail for the stage table in [SKILL.md](SKILL.md). `S` below stands for the `sd
 
 ## `intake`
 1. **Project config.** Read `.sdd/config.json` at the project root.
-   - **Missing:** look at the project first (package manifests and their scripts, existing `specs/`-like and `docs/plans/`-like folders, test file names, workspace layout) and propose a config: the defaults below, with each `commands.*` filled only by a command that exists in the project (a script in a manifest, a Makefile target), else `null`, and `packages` from the workspace layout (`["."]` for a single package). Ask **once** (one AskUserQuestion): accept the proposal, or edit it. Then Write `.sdd/config.json` with the answer. Never guess a command the project does not define.
+   - **Missing:** run `S config-propose`. It builds a config from what the project defines (the defaults below; each `commands.*` only from a manifest script or a Makefile target, else `null`; an existing `specs`/`docs/specs`/`spec` and `docs/plans`/`plans` folder; `packages` from the workspace layout, `["."]` for a single package), writes it to **`.sdd/config.proposed.json`** and prints a summary block. It never writes `.sdd/config.json`. Then:
+     1. Show the summary block to the user as printed: `specsDir`, `plansDir`, `packages`, each command or "not configured", and how to accept it. If the project clearly needs a value the script could not see (a command defined somewhere else, a different specs folder), edit `.sdd/config.proposed.json` and say what you changed. Never add a command the project does not define.
+     2. **AskUserQuestion available** (an interactive session): ask **once**: accept the proposal, or edit it. On accept run `S config-accept` (it validates the file and renames it to `.sdd/config.json`); on edits, apply them to `.sdd/config.proposed.json` first, then `S config-accept`.
+     3. **AskUserQuestion not available** (a headless or `-p` session) or the user does not answer: **stop here.** End the turn with the summary block and the one action that accepts it (`mv .sdd/config.proposed.json .sdd/config.json`, or run `/sdd-engineering:run-plan` again in an interactive session and answer yes). Do not wait for a gate that cannot come, do not accept on the user's behalf.
+     4. Never write `.sdd/config.json` yourself, and never start `spec-p1` or any later stage while `.sdd/config.json` is missing.
 
      ```json
      {
@@ -22,7 +26,7 @@ Detail for the stage table in [SKILL.md](SKILL.md). `S` below stands for the `sd
      }
      ```
 
-     The same question offers to add `.sdd/usage.jsonl` and `.sdd/pending-agents.log` to `.gitignore` (local run data; `.sdd/config.json` itself is meant to be committed). Add them only on yes.
+     The same question offers to add `.sdd/usage.jsonl`, `.sdd/pending-agents.log` and `.sdd/config.proposed.json` to `.gitignore` (local run data; `.sdd/config.json` itself is meant to be committed). Add them only on yes.
    - **Present:** use it as is; missing keys take the defaults above. `S config` must succeed (a bad value exits 2 with the reason: fix it with the user before going on).
 2. **Indexes.** If `<specsDir>/README.md` is missing, create it from the `specs-README.md` template (templates folder in SKILL.md §0); if `<plansDir>/README.md` is missing, create it from `plans-README.md`. Replace the `<specsDir>` / `<plansDir>` placeholders in the copy with the configured values. Never overwrite an existing index. A `<pkg>/<specsDir>/README.md` is created the same way when the first spec goes there.
 3. **Project knowledge.** Read the project's instructions (`CLAUDE.md`, `AGENTS.md`, and the per-package equivalents of every package the request names) and, when present, the files named in `.sdd/config.json` → `insights`: the `rules` file of every package the request names and the `grep '^### '` headings of the `log` file (per package and at the root). Name the entries that bear on the task. Missing files are fine.
