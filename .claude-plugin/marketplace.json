@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "shark-plugins",
+  "description": "Shark Software's team marketplace of Claude Code plugins: skills, agents, hooks and MCP configurations.",
+  "owner": {
+    "name": "Shark Software",
+    "url": "https://github.com/korzunss"
+  },
+  "plugins": [
+    {
+      "name": "team-conventions",
+      "source": "./plugins/team-conventions",
+      "description": "Baseline team conventions: code style, commit messages and pull request descriptions.",
+      "category": "development",
+      "keywords": [
+        "conventions",
+        "code-style",
+        "commits"
+      ]
+    }
+  ]
+}

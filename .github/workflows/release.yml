@@ -1,0 +1,48 @@
+name: Release
+
+# After a merge to main: tag every new plugin version as <plugin>--v<version>
+# and create a GitHub release with its CHANGELOG notes. See docs/RELEASES.md.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write # push tags, create releases
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # existing tags are needed to tell which versions are new
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      - name: Tag new plugin versions
+        id: tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          node scripts/release.mjs tag --push --github-output
+
+      - name: Create GitHub releases
+        if: steps.tag.outputs.tags != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAGS: ${{ steps.tag.outputs.tags }}
+        run: |
+          for tag in $TAGS; do
+            plugin="${tag%--v*}"
+            version="${tag##*--v}"
+            node scripts/release.mjs notes "$plugin" "$version" > notes.md
+            gh release create "$tag" --title "$plugin v$version" --notes-file notes.md --verify-tag
+          done

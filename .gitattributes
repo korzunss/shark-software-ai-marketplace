@@ -1,0 +1,20 @@
+# Normalize line endings to LF: CRLF breaks shell scripts and hooks on Windows checkouts.
+* text=auto eol=lf
+
+*.sh    text eol=lf
+*.bash  text eol=lf
+*.mjs   text eol=lf
+*.js    text eol=lf
+*.json  text eol=lf
+*.md    text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+
+*.png   binary
+*.jpg   binary
+*.gif   binary
+*.ico   binary
+*.pdf   binary
+
+# Do not use Git LFS here: plugin installs do not fetch LFS content,
+# so LFS-tracked files would arrive as pointer files.
