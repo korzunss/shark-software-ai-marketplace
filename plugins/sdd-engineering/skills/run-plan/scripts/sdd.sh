@@ -19,6 +19,9 @@ usage() {
   cat <<'USAGE'
 sdd.sh <subcommand> [args]
   config                                   print the resolved directories (.sdd/config.json or defaults)
+  config-propose                           write .sdd/config.proposed.json from what the project defines, print a summary
+                                           (exit 2 when .sdd/config.json exists; never writes .sdd/config.json)
+  config-accept                            validate .sdd/config.proposed.json and rename it to .sdd/config.json
   set-status <plan|spec> <path> <status>   rewrite Status: line and index row cell
   handoff <plan> <label> [file|-]          append "## Handoffs -> <label>" below the brief marker
   log <plan> <text>                        append "- <date> <text>" to ## Verification log
@@ -440,6 +443,18 @@ cmd_config() {
     "${CONFIG_SOURCE}" "${SPECS_DIR}" "${PLANS_DIR}" "${IDEAS_DIR}" "${RETROS_DIR}" "${DOCS_DIR}"
 }
 
+cmd_config_propose() {
+  [ $# -eq 0 ] || die "usage: config-propose"
+  command -v node >/dev/null 2>&1 || die "node not found"
+  node "${here}/sdd-config.mjs" --root "${root}" --propose
+}
+
+cmd_config_accept() {
+  [ $# -eq 0 ] || die "usage: config-accept"
+  command -v node >/dev/null 2>&1 || die "node not found"
+  node "${here}/sdd-config.mjs" --root "${root}" --accept
+}
+
 cmd_checkpoint() {
   [ $# -eq 2 ] || die "usage: checkpoint <NN> <label>"
   case "$1" in ''|*[!0-9]*) die "NN must be digits" ;; esac
@@ -567,6 +582,8 @@ case "${sub}" in
   cost) cmd_cost "$@" ;;
   stages) cmd_stages ;;
   config) cmd_config "$@" ;;
+  config-propose) cmd_config_propose "$@" ;;
+  config-accept) cmd_config_accept "$@" ;;
   checkpoint) cmd_checkpoint "$@" ;;
   delta) cmd_delta "$@" ;;
   brief-diff) cmd_brief_diff "$@" ;;

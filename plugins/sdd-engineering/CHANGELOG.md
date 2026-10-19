@@ -5,6 +5,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-19
+
+### Added
+
+- `sdd.sh config-propose`: builds a config from what the project defines (manifest scripts, Makefile targets, existing spec/plan folders, workspaces) and writes it to `.sdd/config.proposed.json`, never to `.sdd/config.json`, then prints a summary (directories, each command or "not configured").
+- `sdd.sh config-accept`: validates `.sdd/config.proposed.json` and renames it to `.sdd/config.json`.
+
+### Changed
+
+- `run-plan` intake without `.sdd/config.json` now writes the proposal to `.sdd/config.proposed.json` and shows its summary. An interactive session asks once to accept it (`config-accept`); a headless (`-p`) session, which has no AskUserQuestion, stops after the summary instead of waiting for a gate that never comes. `.sdd/config.json` is created only on approval, and no stage after `intake` runs while it is missing.
+
 ## [1.0.0] - 2026-10-19
 
 ### Added

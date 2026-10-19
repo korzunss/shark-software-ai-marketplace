@@ -31,10 +31,15 @@ One command is enough: the four plugins it depends on install automatically
 
 What happens next:
 
-1. **intake** — if the project has no `.sdd/config.json`, the skill looks at
-   your manifests, folders and test names, proposes a config and asks you once
-   (see [Configuration](#configuration)). It creates the spec and plan indexes
-   from its templates when they are missing.
+1. **intake** — if the project has no `.sdd/config.json`, the skill builds a
+   proposal from your manifests, Makefile and folders, writes it to
+   `.sdd/config.proposed.json` and shows a summary (directories, each command
+   or "not configured"). In an interactive session it asks you once to accept
+   it; in a headless (`-p`) session it stops there, and you accept it with
+   `mv .sdd/config.proposed.json .sdd/config.json` (see
+   [Configuration](#configuration)). Nothing else runs until `.sdd/config.json`
+   exists. It creates the spec and plan indexes from its templates when they
+   are missing.
 2. **spec** — `spec-creator` asks up to 8 blocking questions, you answer, it
    writes `specs/NNN-….md`; you approve it.
 3. **research** — you are asked whether to run `research-tools:researcher`
@@ -205,7 +210,7 @@ The main session drives every hop; no agent spawns another (none has the
 
 | Stage | Owner | Your gate |
 |---|---|---|
-| `intake` | main session | once, only if `.sdd/config.json` is missing or the arguments are ambiguous |
+| `intake` | main session | once, only if `.sdd/config.json` is missing (accept `.sdd/config.proposed.json`; a headless session stops here) or the arguments are ambiguous |
 | `spec-p1` | `sdd-engineering:spec-creator` | — |
 | `spec-answers` | main session | one question per `Bn` / open `Qn` |
 | `spec-p2` | `sdd-engineering:spec-creator` | — |
@@ -435,9 +440,13 @@ same plan.
 ## Configuration
 
 `run-plan` and the `sdd-engineering` agents read `.sdd/config.json` at the
-project root. `run-plan` proposes and writes it at `intake` (one question) when
-it is missing; commit it. Every key is optional; a missing key takes the
-default.
+project root. When it is missing, `run-plan` writes a proposal to
+`.sdd/config.proposed.json` at `intake` (`sdd.sh config-propose`: commands only
+from your manifest scripts or Makefile targets, `null` otherwise) and shows a
+summary. Accepting it (answering yes, which runs `sdd.sh config-accept`, or
+`mv .sdd/config.proposed.json .sdd/config.json` yourself) creates
+`.sdd/config.json`; `run-plan` never writes that file without your approval.
+Commit it. Every key is optional; a missing key takes the default.
 
 ```json
 {
@@ -475,7 +484,8 @@ migration command to run, the runtime version, test helpers and mocks — comes
 from the project's own instructions (`CLAUDE.md`, `AGENTS.md`, per-package
 equivalents). The more precise they are, the better the plans.
 
-`.sdd/` also holds local run data (`usage.jsonl`, `pending-agents.log`);
+`.sdd/` also holds local run data (`usage.jsonl`, `pending-agents.log`,
+an unaccepted `config.proposed.json`);
 `intake` offers to add those to `.gitignore`. For the security reviewer's
 project file `.sdd/security.md`, see the `security-review` plugin.
 
@@ -483,7 +493,7 @@ project file `.sdd/security.md`, see the `security-review` plugin.
 
 | `sdd-engineering` | `engineering-paved-path` | `research-tools` | `architecture-review` | `security-review` |
 |---|---|---|---|---|
-| 1.0.x | ^1.0.0 | ^1.0.0 | ^1.0.0 | ^1.0.0 |
+| 1.0.x, 1.1.x | ^1.0.0 | ^1.0.0 | ^1.0.0 | ^1.0.0 |
 
 Releases and their changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
