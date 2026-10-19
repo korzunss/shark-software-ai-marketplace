@@ -521,7 +521,9 @@ function checkVersionBumps(base, plugins) {
 
   for (const { name, version } of plugins) {
     const prefix = `${PLUGINS_DIR}/${name}/`;
-    if (!changed.some((f) => f.startsWith(prefix))) continue;
+    // Eval suites (`evals/`) test the plugin but change nothing a session loads,
+    // so they need no new version: a baseline and its re-run share one version.
+    if (!changed.some((f) => f.startsWith(prefix) && !f.startsWith(`${prefix}evals/`))) continue;
     let baseVersion;
     try {
       baseVersion = JSON.parse(git('show', `${mergeBase}:${prefix}.claude-plugin/plugin.json`)).version;

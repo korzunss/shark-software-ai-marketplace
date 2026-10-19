@@ -87,3 +87,23 @@ test('mentioning the source project fails, except in NOTICE.md', (t) => {
   const rerun = spawnSync('node', [path.join(ok.dir, 'scripts', 'validate-marketplace.mjs')], { cwd: ok.dir, encoding: 'utf8' });
   assert.equal(rerun.status, 0, rerun.stdout + rerun.stderr);
 });
+
+test('a change under evals/ needs no version bump; any other change does', (t) => {
+  const r = makeMarketplace(t);
+  const git = (...args) => spawnSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'commit.gpgsign=false', ...args], { cwd: r.dir, encoding: 'utf8' });
+  const lint = () => spawnSync('node', [path.join(r.dir, 'scripts', 'validate-marketplace.mjs'), '--base', 'HEAD'], {
+    cwd: r.dir, encoding: 'utf8', env: { ...process.env, GITHUB_ACTIONS: '' },
+  });
+  git('init', '--quiet');
+  git('add', '-A');
+  git('commit', '--quiet', '-m', 'base');
+
+  r.write('plugins/reviewer/evals/smoke/prompt.md', 'Review this.\n');
+  const evalsOnly = lint();
+  assert.equal(evalsOnly.status, 0, evalsOnly.stdout + evalsOnly.stderr);
+
+  r.write('plugins/reviewer/agents/reviewer.md', '---\nname: reviewer\ndescription: Reviews code, changed\nskills:\n  - base:style\n---\n');
+  const agentChanged = lint();
+  assert.notEqual(agentChanged.status, 0);
+  assert.match(agentChanged.stdout + agentChanged.stderr, /version was not bumped/);
+});
