@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
-  "name": "shark-plugins",
-  "description": "Shark Software's team marketplace of Claude Code plugins: skills, agents, hooks and MCP configurations.",
+  "name": "shark-plugins-stable",
+  "description": "Stable channel of Shark Software's Claude Code plugins: only plugin versions that passed their evals. The latest channel is the shark-plugins marketplace on main.",
   "owner": {
     "name": "Shark Software",
     "url": "https://github.com/korzunss"

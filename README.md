@@ -2,8 +2,10 @@
 
 A private team marketplace of [Claude Code](https://code.claude.com/docs/en/plugins/create-marketplace) plugins: skills, agents, hooks and MCP configurations for Shark Software projects.
 
-- Marketplace name: **`shark-plugins`**
-- Plugin id: `<plugin>@shark-plugins`
+> **This is the `stable` branch: the stable channel.** It holds only plugin versions that passed their evals, under the marketplace name **`shark-plugins-stable`**. Add it with `claude plugin marketplace add korzunss/shark-software-ai-marketplace#stable` and install with `<plugin>@shark-plugins-stable`. Day-to-day development and the latest channel (`shark-plugins`) live on `main`; see [docs/RELEASES.md on main](https://github.com/korzunss/shark-software-ai-marketplace/blob/main/docs/RELEASES.md#stable-channel).
+
+- Marketplace name: **`shark-plugins-stable`** (this branch); `shark-plugins` on `main`
+- Plugin id: `<plugin>@shark-plugins-stable`
 
 > **New here?** [docs/USAGE.md](docs/USAGE.md) shows how to add the marketplace, install, use, update and remove plugins, all on one page.
 
