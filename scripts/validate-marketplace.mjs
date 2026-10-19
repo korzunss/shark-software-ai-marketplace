@@ -47,6 +47,13 @@ const SECRET_PATTERNS = [
   ['Slack token', /\bxox[abprs]-[A-Za-z0-9-]{10,}/],
   ['Private key', /-----BEGIN [A-Z ]*PRIVATE KEY-----/],
 ];
+// Plugins are project-agnostic: names of the project they were extracted from must not leak
+// into them. NOTICE.md is exempt, because it carries the upstream attribution.
+const PROJECT_SPECIFIC_TERMS = [/\bdev-?digest\b/i, /@devdigest\//i, /\.devdigest\//i];
+const ATTRIBUTION_FILE = 'NOTICE.md';
+// A plugin's own scripts are found through ${CLAUDE_SKILL_DIR} / ${CLAUDE_PLUGIN_ROOT}, never via the
+// project's .claude/ folder, which does not contain them after install.
+const HARNESS_PATH = /(^|[\s`"'(])\.claude\/(skills|agents)\//;
 // Manifest keys whose values are paths inside the plugin.
 const PATH_KEYS = ['skills', 'commands', 'agents', 'hooks', 'mcpServers', 'lspServers', 'outputStyles', 'workflows'];
 const JSON_CONFIGS = ['hooks/hooks.json', '.mcp.json', '.lsp.json', 'monitors/monitors.json', 'settings.json'];
@@ -98,6 +105,25 @@ function parseFrontmatter(file) {
     if (m) fields[m[1]] = m[2].replace(/^["']|["']$/g, '').trim();
   }
   return fields;
+}
+
+// Reads a YAML block list (`key:\n  - a\n  - b`) or an inline one (`key: [a, b]`) from the frontmatter.
+function frontmatterList(file, key) {
+  const text = fs.readFileSync(file, 'utf8');
+  const fm = text.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/)?.[1];
+  if (!fm) return [];
+  const lines = fm.split(/\r?\n/);
+  const i = lines.findIndex((l) => l.startsWith(`${key}:`));
+  if (i < 0) return [];
+  const inline = lines[i].slice(key.length + 1).trim();
+  if (inline) return inline.replace(/^\[|\]$/g, '').split(',').map((s) => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
+  const out = [];
+  for (const line of lines.slice(i + 1)) {
+    const m = line.match(/^\s+-\s+(.+)$/);
+    if (!m) break;
+    out.push(m[1].trim().replace(/^["']|["']$/g, ''));
+  }
+  return out;
 }
 
 // ── Names ────────────────────────────────────────────────────────────────────
@@ -361,12 +387,117 @@ function checkFiles(dir) {
     if (text.includes('\r\n')) err(where, 'CRLF line endings; use LF (see .gitattributes)');
 
     const parts = where.split('/');
+    if (path.basename(full) !== ATTRIBUTION_FILE) {
+      const term = PROJECT_SPECIFIC_TERMS.find((re) => re.test(text));
+      if (term) err(where, `mentions the source project (${term}); plugins must be project-agnostic, keep attribution in ${ATTRIBUTION_FILE}`);
+    }
+    if ((parts.includes('agents') || parts.includes('skills')) && /\.md$/.test(full) && HARNESS_PATH.test(text)) {
+      warn(where, 'hard-coded .claude/skills/ or .claude/agents/ path; reference plugin files through ${CLAUDE_SKILL_DIR} or ${CLAUDE_PLUGIN_ROOT}');
+    }
+
     const isScript = parts.includes('scripts') || parts.includes('bin') || /\.(sh|bash)$/.test(full);
     if (isScript) {
       if ((fs.statSync(full).mode & 0o111) === 0) err(where, 'script is not executable (chmod +x, and `git update-index --chmod=+x`)');
       if (!text.startsWith('#!')) warn(where, 'script has no shebang line');
     }
   }
+}
+
+// ── Dependencies between plugins ────────────────────────────────────────────
+
+// Returns the dependency names of one plugin.json, reporting malformed entries.
+function dependencyNames(where, pj, marketplaceName) {
+  const deps = pj.dependencies;
+  if (deps === undefined) return [];
+  if (!Array.isArray(deps)) {
+    err(where, '"dependencies" must be an array');
+    return [];
+  }
+  const names = [];
+  for (const d of deps) {
+    const raw = typeof d === 'string' ? d : d?.name;
+    if (typeof raw !== 'string' || !raw) {
+      err(where, `dependency ${JSON.stringify(d)} must be a "name" string or an object with "name"`);
+      continue;
+    }
+    const [name, market] = raw.split('@');
+    if (market && market !== marketplaceName) continue; // cross-marketplace: not ours to check
+    if (typeof d === 'object' && d.version !== undefined && (typeof d.version !== 'string' || !d.version.trim())) {
+      err(where, `dependency "${name}": "version" must be a non-empty range string such as "^1.0.0"`);
+    }
+    names.push(name);
+  }
+  return names;
+}
+
+// plugins: [{ name, dir, pj }] for every catalog plugin with a local source.
+function checkDependencies(plugins, marketplaceName) {
+  const byName = new Map(plugins.map((p) => [p.name, p]));
+  const direct = new Map();
+  for (const p of plugins) {
+    const where = rel(path.join(p.dir, '.claude-plugin', 'plugin.json'));
+    const names = dependencyNames(where, p.pj, marketplaceName);
+    for (const n of names) {
+      if (n === p.name) err(where, 'a plugin must not depend on itself');
+      else if (!byName.has(n)) err(where, `dependency "${n}" is not a plugin in this marketplace`);
+    }
+    direct.set(p.name, names.filter((n) => n !== p.name && byName.has(n)));
+  }
+
+  // Transitive closure; a cycle shows up as a plugin reaching itself.
+  const closure = new Map();
+  const reach = (name, seen = new Set()) => {
+    for (const n of direct.get(name) ?? []) {
+      if (seen.has(n)) continue;
+      seen.add(n);
+      reach(n, seen);
+    }
+    return seen;
+  };
+  for (const p of plugins) {
+    const all = reach(p.name);
+    if (all.has(p.name)) err(rel(path.join(p.dir, '.claude-plugin', 'plugin.json')), 'dependency cycle');
+    closure.set(p.name, all);
+  }
+
+  // Namespaced skill references (`plugin:skill`) in agents and skills must point at a plugin that is
+  // this one or one it depends on, and at a skill that exists there. Otherwise the reference resolves
+  // only when the user happens to have the other plugin installed.
+  const skillExists = (plugin, skill) => exists(path.join(byName.get(plugin).dir, 'skills', skill, 'SKILL.md'));
+  const pluginNames = [...byName.keys()];
+  const refPattern = new RegExp(`(?<![\\w/.-])(${pluginNames.map(escapeRegExp).join('|')}):([a-z0-9][a-z0-9-]*)`, 'g');
+
+  for (const p of plugins) {
+    const allowed = new Set([p.name, ...closure.get(p.name)]);
+    const check = (where, plugin, comp, kind) => {
+      if (!allowed.has(plugin)) {
+        err(where, `references "${plugin}:${comp}" but "${plugin}" is not in this plugin's dependencies`);
+      } else if (kind === 'skill' && !skillExists(plugin, comp)) {
+        err(where, `preloads skill "${plugin}:${comp}", which does not exist`);
+      }
+    };
+
+    for (const { full } of walk(path.join(p.dir, 'agents'))) {
+      if (!full.endsWith('.md')) continue;
+      for (const id of frontmatterList(full, 'skills')) {
+        const [plugin, skill] = id.includes(':') ? id.split(':') : [p.name, id];
+        if (!byName.has(plugin)) err(rel(full), `preloads skill "${id}" from unknown plugin "${plugin}"`);
+        else check(rel(full), plugin, skill, 'skill');
+      }
+    }
+    for (const sub of ['agents', 'skills']) {
+      for (const { full } of walk(path.join(p.dir, sub))) {
+        if (!full.endsWith('.md')) continue;
+        for (const m of fs.readFileSync(full, 'utf8').matchAll(refPattern)) {
+          if (!allowed.has(m[1])) check(rel(full), m[1], m[2], 'reference');
+        }
+      }
+    }
+  }
+}
+
+function escapeRegExp(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 // ── Version bumps ───────────────────────────────────────────────────────────
@@ -425,8 +556,9 @@ function main() {
       if (!dir) return;
       catalogDirs.add(path.resolve(dir));
       const pj = checkPluginDir(dir, { entryName: entry.name });
-      if (pj) checked.push({ name: pj.name, version: pj.version });
+      if (pj) checked.push({ name: pj.name, version: pj.version, dir, pj });
     });
+    checkDependencies(checked.filter((p) => typeof p.name === 'string'), marketplace.name);
 
     for (const dir of subdirs(path.join(ROOT, PLUGINS_DIR))) {
       if (!catalogDirs.has(path.resolve(dir))) err(rel(dir), `plugin directory has no entry in ${MANIFEST}`);

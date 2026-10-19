@@ -10,9 +10,9 @@ import path from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { ROOT } from '../lib/common.mjs';
 
-const PLUGIN = 'team-conventions';
+const PLUGIN = 'research-tools';
 const PLUGIN_DIR = `plugins/${PLUGIN}`;
-const SKILL = `${PLUGIN_DIR}/skills/code-style/SKILL.md`;
+const AGENT = `${PLUGIN_DIR}/agents/researcher.md`;
 const GIT_ENV = {
   ...process.env,
   GIT_AUTHOR_NAME: 'Test', GIT_AUTHOR_EMAIL: 'test@example.com',
@@ -56,22 +56,22 @@ test('bump refuses without Unreleased notes', (t) => {
   const r = repo.run('release.mjs', 'bump', PLUGIN, 'patch', '--base', 'main');
   assert.equal(r.status, 2);
   assert.match(r.stderr, /Unreleased/);
-  assert.equal(repo.version(), '0.1.0');
+  assert.equal(repo.version(), '1.0.0');
 });
 
 test('bump moves notes into a version section, updates README, passes the linter', (t) => {
   const repo = makeRepo(t);
   repo.git('checkout', '--quiet', '-b', 'feat');
-  repo.write(SKILL, `${repo.read(SKILL)}\n- New rule.\n`);
+  repo.write(AGENT, `${repo.read(AGENT)}\n- New rule.\n`);
   addUnreleasedNote(repo, 'Added a rule.');
 
   ok(repo.run('release.mjs', 'bump', PLUGIN, 'patch', '--base', 'main', '--date', '2026-11-01'));
-  assert.equal(repo.version(), '0.1.1');
+  assert.equal(repo.version(), '1.0.1');
 
   const changelog = repo.read(`${PLUGIN_DIR}/CHANGELOG.md`);
-  assert.match(changelog, /## \[Unreleased\]\n\n## \[0\.1\.1\] - 2026-11-01\n\n### Changed\n\n- Added a rule\./);
-  assert.match(changelog, /## \[0\.1\.0\] - 2026-10-17/);
-  assert.match(repo.read('README.md'), /\| `team-conventions` \| 0\.1\.1 \|/);
+  assert.match(changelog, /## \[Unreleased\]\n\n## \[1\.0\.1\] - 2026-11-01\n\n### Changed\n\n- Added a rule\./);
+  assert.match(changelog, /## \[1\.0\.0\] - 2026-10-19/);
+  assert.match(repo.read('README.md'), /\| `research-tools` \| 1\.0\.1 \|/);
 
   ok(repo.run('validate-marketplace.mjs', '--base', 'main'));
 });
@@ -83,16 +83,16 @@ test('re-running bump on the same branch recomputes from the base instead of bum
   ok(repo.run('release.mjs', 'bump', PLUGIN, 'patch', '--base', 'main', '--date', '2026-11-01'));
   ok(repo.run('release.mjs', 'bump', PLUGIN, 'minor', '--base', 'main', '--date', '2026-11-02'));
 
-  assert.equal(repo.version(), '0.2.0');
+  assert.equal(repo.version(), '1.1.0');
   const changelog = repo.read(`${PLUGIN_DIR}/CHANGELOG.md`);
-  assert.doesNotMatch(changelog, /0\.1\.1/);
-  assert.match(changelog, /## \[0\.2\.0\] - 2026-11-02\n\n### Changed\n\n- First change\./);
+  assert.doesNotMatch(changelog, /1\.0\.1/);
+  assert.match(changelog, /## \[1\.1\.0\] - 2026-11-02\n\n### Changed\n\n- First change\./);
 });
 
 test('bump rejects an explicit version that is not greater', (t) => {
   const repo = makeRepo(t);
   addUnreleasedNote(repo, 'x');
-  const r = repo.run('release.mjs', 'bump', PLUGIN, '0.1.0', '--base', 'main');
+  const r = repo.run('release.mjs', 'bump', PLUGIN, '1.0.0', '--base', 'main');
   assert.equal(r.status, 2);
   assert.match(r.stderr, /must be greater/);
 });
@@ -100,8 +100,11 @@ test('bump rejects an explicit version that is not greater', (t) => {
 test('tag creates missing tags on main only, once', (t) => {
   const repo = makeRepo(t);
   const first = ok(repo.run('release.mjs', 'tag'));
-  assert.match(first.stdout, /team-conventions--v0\.1\.0/);
-  assert.equal(repo.git('tag', '--list'), 'team-conventions--v0.1.0');
+  assert.match(first.stdout, /research-tools--v1\.0\.0/);
+  const expected = fs.readdirSync(path.join(repo.dir, 'plugins'))
+    .map((name) => `${name}--v${JSON.parse(repo.read(`plugins/${name}/.claude-plugin/plugin.json`)).version}`)
+    .sort();
+  assert.deepEqual(repo.git('tag', '--list').split('\n').sort(), expected);
 
   const second = ok(repo.run('release.mjs', 'tag'));
   assert.match(second.stdout, /already tagged/);
@@ -112,34 +115,34 @@ test('tag creates missing tags on main only, once', (t) => {
 
 test('notes prints the CHANGELOG section of a version', (t) => {
   const repo = makeRepo(t);
-  const r = ok(repo.run('release.mjs', 'notes', PLUGIN, '0.1.0'));
-  assert.match(r.stdout, /code-style/);
+  const r = ok(repo.run('release.mjs', 'notes', PLUGIN, '1.0.0'));
+  assert.match(r.stdout, /researcher/);
   assert.equal(repo.run('release.mjs', 'notes', PLUGIN, '9.9.9').status, 2);
 });
 
 test('rollback restores files from a tag under a new, higher version', (t) => {
   const repo = makeRepo(t);
-  const originalSkill = repo.read(SKILL);
+  const originalAgent = repo.read(AGENT);
   ok(repo.run('release.mjs', 'tag'));
 
-  // Release 0.2.0 with a modified skill and an extra file.
-  repo.write(SKILL, `${originalSkill}\n- Bad rule.\n`);
-  repo.write(`${PLUGIN_DIR}/skills/code-style/extra.md`, 'extra\n');
+  // Release 1.1.0 with a modified agent and an extra file.
+  repo.write(AGENT, `${originalAgent}\n- Bad rule.\n`);
+  repo.write(`${PLUGIN_DIR}/agents/extra.md`, '---\nname: extra\ndescription: Extra agent\n---\n');
   addUnreleasedNote(repo, 'Bad change.');
   ok(repo.run('release.mjs', 'bump', PLUGIN, 'minor', '--date', '2026-11-01'));
   repo.git('add', '--all');
-  repo.git('commit', '--quiet', '--message', 'release 0.2.0');
+  repo.git('commit', '--quiet', '--message', 'release 1.1.0');
 
-  ok(repo.run('rollback.mjs', PLUGIN, '--to', '0.1.0', '--reason', 'Bad rule broke reviews.', '--date', '2026-11-02'));
+  ok(repo.run('rollback.mjs', PLUGIN, '--to', '1.0.0', '--reason', 'Bad rule broke reviews.', '--date', '2026-11-02'));
 
-  assert.equal(repo.version(), '0.2.1');
-  assert.equal(repo.read(SKILL), originalSkill);
-  assert.equal(fs.existsSync(path.join(repo.dir, PLUGIN_DIR, 'skills/code-style/extra.md')), false);
+  assert.equal(repo.version(), '1.1.1');
+  assert.equal(repo.read(AGENT), originalAgent);
+  assert.equal(fs.existsSync(path.join(repo.dir, PLUGIN_DIR, 'agents/extra.md')), false);
 
   const changelog = repo.read(`${PLUGIN_DIR}/CHANGELOG.md`);
-  assert.match(changelog, /## \[Unreleased\]\n\n## \[0\.2\.1\] - 2026-11-02\n\n### Reverted\n\n- Rolled back to the contents of 0\.1\.0 \(`[0-9a-f]+`\)\. Reason: Bad rule broke reviews\./);
-  assert.match(changelog, /## \[0\.2\.0\] - 2026-11-01/, 'history is kept');
-  assert.match(repo.read('README.md'), /\| `team-conventions` \| 0\.2\.1 \|/);
+  assert.match(changelog, /## \[Unreleased\]\n\n## \[1\.1\.1\] - 2026-11-02\n\n### Reverted\n\n- Rolled back to the contents of 1\.0\.0 \(`[0-9a-f]+`\)\. Reason: Bad rule broke reviews\./);
+  assert.match(changelog, /## \[1\.1\.0\] - 2026-11-01/, 'history is kept');
+  assert.match(repo.read('README.md'), /\| `research-tools` \| 1\.1\.1 \|/);
   assert.notEqual(repo.git('diff', '--cached', '--name-only'), '', 'result is staged');
 
   ok(repo.run('validate-marketplace.mjs', '--base', 'main~1'));
@@ -149,7 +152,7 @@ test('rollback refuses a dirty plugin folder and a missing tag', (t) => {
   const repo = makeRepo(t);
   assert.match(repo.run('rollback.mjs', PLUGIN, '--to', '0.0.1', '--reason', 'x').stderr, /not found/);
 
-  repo.write(SKILL, 'dirty\n');
+  repo.write(AGENT, 'dirty\n');
   assert.match(repo.run('rollback.mjs', PLUGIN, '--to', 'HEAD', '--reason', 'x').stderr, /uncommitted changes/);
   assert.match(repo.run('rollback.mjs', PLUGIN, '--to', 'HEAD').stderr, /--reason is required/);
 });

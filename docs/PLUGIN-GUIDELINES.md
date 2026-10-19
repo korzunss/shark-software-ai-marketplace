@@ -30,7 +30,7 @@ plugins/<name>/
 - **[CI]** Names are kebab-case, without the `claude-`, `anthropic-`, `anthropics-` or `cc-plugin-` prefixes, and are not `claude`, `anthropic`, `claude-code` or `claude-mods`.
 - **[CI]** Catalog entries are sorted alphabetically, with no duplicates.
 - The name is a permanent id. Use `displayName` to change the label shown in the UI. For renames see [RELEASES.md](RELEASES.md#renaming-and-removing).
-- Components are namespaced by the plugin name: the `code-style` skill in the `team-conventions` plugin is invoked as `team-conventions:code-style`.
+- Components are namespaced by the plugin name: the `onion-architecture` skill in the `engineering-paved-path` plugin is invoked as `engineering-paved-path:onion-architecture`.
 
 ## plugin.json
 
@@ -68,6 +68,25 @@ plugins/<name>/
 - **[CI]** Agents have `name` and `description`; commands have `description`.
 - `description` decides when a skill triggers. Say both **what** the skill does and **when** to use it.
 - One plugin, one job. An always-on plugin permanently uses context; check how much with `claude plugin details <name>`. Mark niche plugins `defaultEnabled: false` and group related plugins through `dependencies`.
+
+## Dependencies between plugins
+
+```json
+"dependencies": [{ "name": "engineering-paved-path", "version": "^1.0.0" }]
+```
+
+- Accepted shapes: `"name"`, `"name@marketplace"`, or `{ "name", "version", "marketplace" }`. `version` is a SemVer range resolved against the tags `<plugin>--v<version>` ([dependencies](https://code.claude.com/docs/en/plugins/dependencies)). Installing a plugin installs its missing dependencies.
+- **[CI]** Every dependency is a plugin of this marketplace, not the plugin itself, and there are no cycles.
+- **[CI]** A component of another plugin is referenced by its namespaced id (`engineering-paved-path:onion-architecture`). Such a reference in `agents/` or `skills/`, and every `skills:` preload in an agent, points to this plugin or to one it depends on (directly or transitively). A preloaded skill must exist.
+- Release a dependency before the plugin that needs it: the range has nothing to resolve against until the tag exists.
+
+## Project-agnostic content
+
+Plugins are reused across projects, so they do not carry the names, paths or history of the project they were extracted from.
+
+- **[CI]** No mention of the source project outside `NOTICE.md`, which holds the upstream attribution and license.
+- **[CI, warning]** No `.claude/skills/…` or `.claude/agents/…` paths in agents and skills: after install the plugin lives in the cache, not in the project's `.claude/`.
+- Project-specific values (directories, commands, test tiers, protected paths) come from explicit inputs: the prompt, the project's `CLAUDE.md`/`AGENTS.md`, or a config file the plugin documents (for example `.sdd/config.json`).
 
 ## Paths and variables
 

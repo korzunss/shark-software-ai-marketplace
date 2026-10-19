@@ -9,7 +9,13 @@ A private team marketplace of [Claude Code](https://code.claude.com/docs/en/plug
 
 | Plugin | Version | What it does |
 |---|---|---|
-| `team-conventions` | 0.1.0 | Baseline team conventions: code style, commit messages and pull request descriptions |
+| `architecture-review` | 1.0.0 | Read-only `architecture-reviewer` agent: checks a diff or module against layer boundaries, PASS/BLOCK |
+| `engineering-paved-path` | 1.0.0 | Shared engineering skills: onion and frontend architecture, React, Next.js, Fastify, Zod, TypeScript, Drizzle, PostgreSQL, security, Mermaid, insights log |
+| `research-tools` | 1.0.0 | Read-only `researcher` agent: repo and external questions answered with cited evidence |
+| `sdd-engineering` | 1.0.0 | Spec Driven Development: spec → plan → implement → verify with user gates (`/sdd-engineering:run-plan`), plus `workflow-retro` |
+| `security-review` | 1.0.0 | Read-only `security-reviewer` agent and `appsec-review` skill: source → sink tracing, PASS/BLOCK |
+
+`sdd-engineering` depends on the other four plugins (`^1.0.0`); installing it installs them. `architecture-review` and `security-review` depend on `engineering-paved-path`. See [docs/SDD-PLUGINS-SPEC.md](docs/SDD-PLUGINS-SPEC.md).
 
 ## Quick start
 
@@ -23,7 +29,7 @@ Then add the marketplace and install a plugin:
 
 ```bash
 claude plugin marketplace add korzunss/shark-software-ai-marketplace
-claude plugin install team-conventions@shark-plugins
+claude plugin install sdd-engineering@shark-plugins
 ```
 
 ### Enable for a whole project team
@@ -38,7 +44,7 @@ Commit `.claude/settings.json` to the project:
     }
   },
   "enabledPlugins": {
-    "team-conventions@shark-plugins": true
+    "sdd-engineering@shark-plugins": true
   }
 }
 ```

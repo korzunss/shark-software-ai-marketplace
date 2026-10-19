@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "research-tools",
+  "displayName": "Research Tools",
+  "version": "1.0.0",
+  "description": "Read-only researcher agent that answers repo and external questions with cited evidence and an explicit list of what it could not establish.",
+  "author": { "name": "Shark Software", "url": "https://github.com/korzunss" },
+  "homepage": "https://github.com/korzunss/shark-software-ai-marketplace/tree/main/plugins/research-tools",
+  "repository": "https://github.com/korzunss/shark-software-ai-marketplace",
+  "keywords": ["research", "agent", "read-only", "citations", "codebase-questions"]
+}

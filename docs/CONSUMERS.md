@@ -29,10 +29,10 @@ export CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1
 
 ```bash
 claude plugin marketplace add korzunss/shark-software-ai-marketplace
-claude plugin install team-conventions@shark-plugins
+claude plugin install sdd-engineering@shark-plugins
 ```
 
-Inside a session, `/plugin install team-conventions@shark-plugins` opens a panel where you choose the scope:
+Inside a session, `/plugin install sdd-engineering@shark-plugins` opens a panel where you choose the scope:
 
 | Scope | Stored in | Use it for |
 |---|---|---|
@@ -52,7 +52,7 @@ Commit `.claude/settings.json` to the project repository:
     }
   },
   "enabledPlugins": {
-    "team-conventions@shark-plugins": true
+    "sdd-engineering@shark-plugins": true
   }
 }
 ```
@@ -71,7 +71,7 @@ Auto-update for `shark-plugins` is **off by default**. Turn it on in `/plugin` â
 
 ```bash
 claude plugin marketplace update shark-plugins
-claude plugin update team-conventions@shark-plugins
+claude plugin update sdd-engineering@shark-plugins
 ```
 
 An update applies from the next session. In the current session, run `/reload-plugins`.
@@ -91,7 +91,7 @@ For admins rolling the marketplace out to every machine on the team. These keys 
     }
   },
   "enabledPlugins": {
-    "team-conventions@shark-plugins": true
+    "sdd-engineering@shark-plugins": true
   }
 }
 ```

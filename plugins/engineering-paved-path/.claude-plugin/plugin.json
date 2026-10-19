@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "engineering-paved-path",
+  "displayName": "Engineering Paved Path",
+  "version": "1.0.0",
+  "description": "Shared engineering skills for TypeScript web projects: onion backend layering, frontend architecture, React, Next.js, Fastify, Zod, TypeScript, Drizzle, PostgreSQL, OWASP security, Mermaid and a project insights log.",
+  "author": { "name": "Shark Software", "url": "https://github.com/korzunss" },
+  "homepage": "https://github.com/korzunss/shark-software-ai-marketplace/tree/main/plugins/engineering-paved-path",
+  "repository": "https://github.com/korzunss/shark-software-ai-marketplace",
+  "keywords": ["skills", "architecture", "onion-architecture", "react", "nextjs", "fastify", "zod", "typescript", "drizzle", "postgresql", "security", "mermaid"],
+  "defaultEnabled": false
+}
