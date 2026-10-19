@@ -78,6 +78,7 @@ scripts/test/                     tests for the scripts (node --test)
 | [docs/PLUGIN-GUIDELINES.md](docs/PLUGIN-GUIDELINES.md) | Plugin layout, names, paths, variables |
 | [docs/SECURITY.md](docs/SECURITY.md) | Hooks, MCP, scripts, secrets, review |
 | [docs/RELEASES.md](docs/RELEASES.md) | Versioning, releases, rollback, renames |
+| [docs/COST-BASELINE.md](docs/COST-BASELINE.md) | Eval-based cost baseline and the measured `architecture-reviewer` optimization |
 | [docs/CONSUMERS.md](docs/CONSUMERS.md) | Adding the marketplace, authentication, managed settings |
 | [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | A plugin does not install or load |
 | [docs/temp/MARKETPLACE-RESEARCH.md](docs/temp/MARKETPLACE-RESEARCH.md) | The research this repository is based on |
