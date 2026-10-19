@@ -34,6 +34,7 @@ export default function Home({ catalog, search }) {
             <button key={k} className="chip" onClick={() => search.browse({ keywords: [k] })}>#{k}</button>
           ))}
         </div>
+        <a className="hero-guide" href={href(paths.gettingStarted())}>{t('home.guideLink')}</a>
       </section>
 
       {entries.length === 0 ? (

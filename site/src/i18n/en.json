@@ -18,6 +18,7 @@
     "openPalette": "Open command palette",
     "themeToLight": "Switch to light theme",
     "themeToDark": "Switch to dark theme",
+    "guide": "How to use",
     "github": "GitHub ↗"
   },
   "home": {
@@ -33,6 +34,7 @@
     "whatsNew": "What's new",
     "allReleases": "All releases →",
     "browseByKind": "Browse by type",
+    "guideLink": "New here? How to connect and use the marketplace →",
     "stats": {
       "plugin": { "one": "plugin", "other": "plugins" },
       "skill": { "one": "skill", "other": "skills" },
@@ -120,15 +122,33 @@
   "guide": {
     "back": "← Home",
     "title": "Connect the marketplace",
-    "lead": "Three steps. Add the marketplace as a source first, then install individual plugins.",
+    "lead": "Four steps. Give git access to the private repository, add the marketplace as a source, then install individual plugins.",
     "steps": [
+      { "title": "Give git access to the private repository", "desc": "The repository is private, and Claude Code never asks for a password: it uses the git credentials already on your machine. You need read access to the repository.", "cmd": "gh auth login && gh auth setup-git" },
       { "title": "Add the marketplace as a source", "desc": "Registers the catalog repository in your Claude Code.", "cmd": "/plugin marketplace add {repo}" },
       { "title": "Install a plugin", "desc": "Install a specific plugin by name from this marketplace.", "cmd": "/plugin install {plugin}@{marketplace}" },
       { "title": "Keep it up to date", "desc": "Refresh the list of sources and the plugins themselves from time to time.", "cmd": "/plugin marketplace update" }
     ],
     "pluginPlaceholder": "<plugin>",
     "noteTitle": "marketplace update vs plugin update.",
-    "noteText": "The first refreshes the list of sources (where plugins come from); the second updates the code of an installed plugin."
+    "noteText": "The first refreshes the list of sources (where plugins come from); the second updates the code of an installed plugin.",
+    "cheatTitle": "Cheat sheet",
+    "cheatLead": "Everyday commands for a terminal. Inside a session, the same actions are in the /plugin panel.",
+    "cheat": [
+      { "title": "See what's installed", "cmd": "claude plugin list" },
+      { "title": "Update a plugin", "cmd": "claude plugin update {plugin}@{marketplace}" },
+      { "title": "Turn a plugin off for a while", "cmd": "claude plugin disable {plugin}@{marketplace}" },
+      { "title": "Turn it back on", "cmd": "claude plugin enable {plugin}@{marketplace}" },
+      { "title": "Remove a plugin", "cmd": "claude plugin uninstall {plugin}@{marketplace}" },
+      { "title": "Remove the marketplace", "cmd": "claude plugin marketplace remove {marketplace}" }
+    ],
+    "cheatNote": "Changes apply from the next session; to load them now, run /reload-plugins.",
+    "useTitle": "Using an installed plugin",
+    "useText": "Skills kick in when the task matches, or call one directly as /<plugin>:<skill>. Agents are listed in /agents: ask Claude to use one by name. Each plugin page in this catalog lists what it contains.",
+    "moreTitle": "More",
+    "moreUsage": "Full guide: project setup, auto-update, git access",
+    "moreContributing": "Add your own plugin",
+    "moreTroubleshooting": "Something doesn't work"
   },
   "palette": {
     "label": "Go to artifact",

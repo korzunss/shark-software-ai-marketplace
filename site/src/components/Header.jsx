@@ -30,6 +30,7 @@ export default function Header({ inputRef, query, onType, onSubmit, theme, onTog
       >
         {theme === 'dark' ? '☾' : '☀'}
       </button>
+      <a className="hlink guide-link" href={href(paths.gettingStarted())}>{t('header.guide')}</a>
       <a className="hlink" href={REPO_URL} target="_blank" rel="noreferrer">{t('header.github')}</a>
     </header>
   );

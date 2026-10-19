@@ -1,6 +1,6 @@
 # Using the marketplace
 
-For people who **use** the `shark-plugins` plugins.
+For people who **use** the `shark-plugins` plugins. This is the detailed reference; for a short task-by-task guide see [USAGE.md](USAGE.md).
 
 Reference: [Install plugins](https://code.claude.com/docs/en/plugins/install), [Manage plugins for your organization](https://code.claude.com/docs/en/plugins/org).
 

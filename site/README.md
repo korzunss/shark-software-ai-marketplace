@@ -93,6 +93,8 @@ The `.github/workflows/pages.yml` workflow is named **Site** and is separate fro
 
 One-time repository setting: **Settings → Pages → Source = GitHub Actions**.
 
+The repository is private. GitHub Pages from a private repository needs a paid plan (Pro or Team; the Free plan has no Pages for private repos), and the site it publishes is still **public**: anyone with the URL sees the catalog. Restricting it to people with repo access needs Enterprise Cloud with an organization-owned repository (Settings → Pages → Visibility = Private) or other hosting with authentication. See SITE-SPEC §2 and Q1.
+
 What makes the site work on Pages:
 - `base` in `vite.config.js` comes from `BASE_PATH`, which CI gets from `actions/configure-pages`;
 - routes live after `#` (`#/plugins/<name>`), so reloading any page never 404s;
