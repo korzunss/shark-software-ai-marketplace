@@ -347,7 +347,7 @@ sdd agent - spec-p1 c3 spec-creator
 sdd agent - research d4 researcher
 eq "agent - writes the pending log" "2" "$(wc -l < .sdd/pending-agents.log | tr -d ' ')"
 sdd agent-flush docs/plans/05-hb.md
-eq "agent-flush removes the pending log" "no" "$([ -f .sdd/pending-agents.log ] && echo yes || echo no)"
+eq "agent-flush removes the pending log" "no" "$(if [ -f .sdd/pending-agents.log ]; then echo yes; else echo no; fi)"
 eq "agent-flush keeps the order, last in the log" "agent: spec-p1 c3 spec-creator
 agent: research d4 researcher" "$(tail -2 docs/plans/05-hb.md | sed -E 's/^- [0-9-]+ //; s/ [0-9T:-]+Z$//')"
 eq "agent-flush without a pending file is a no-op" "0" "$(rc_of bash "${SDD}" agent-flush docs/plans/05-hb.md)"
@@ -365,20 +365,20 @@ sdd log docs/plans/06-st.md "resume: review" >/dev/null
 sdd log docs/plans/06-st.md "plan-lint: fail 1" >/dev/null
 sdd log docs/plans/06-st.md "status-check: fail 1" >/dev/null
 eq "state skips agent/handback/resume/lint lines" "stage: sign-off" "$(state_of docs/plans/06-st.md)"
-write_plan docs/plans/06-st.md done
+write_plan docs/plans/06-st.md "done"
 sdd log docs/plans/06-st.md "self-review: clean" >/dev/null
 eq "state done after self-review is metrics" "stage: metrics" "$(state_of docs/plans/06-st.md)"
 sdd log docs/plans/06-st.md "metrics: flags: 0 flag(s), 0 repeat(s)" >/dev/null
 eq "state done after metrics is handover" "stage: handover" "$(state_of docs/plans/06-st.md)"
 sdd log docs/plans/06-st.md "retro: docs/retros/06-st.md" >/dev/null
 eq "state done skips a retro line" "stage: handover" "$(state_of docs/plans/06-st.md)"
-write_plan docs/plans/06-st.md done
+write_plan docs/plans/06-st.md "done"
 sdd log docs/plans/06-st.md "metrics: flags: 0 flag(s), 0 repeat(s)" >/dev/null
 sdd log docs/plans/06-st.md "retro-fact: G2 implementer resumed twice" >/dev/null
 eq "state done skips a retro-fact line" "stage: handover" "$(state_of docs/plans/06-st.md)"
 sdd log docs/plans/06-st.md "retro: docs/retros/06-st.md" >/dev/null
 eq "state done skips retro-fact then retro" "stage: handover" "$(state_of docs/plans/06-st.md)"
-write_plan docs/plans/06-st.md done
+write_plan docs/plans/06-st.md "done"
 sdd log docs/plans/06-st.md "metrics: flags: 0 flag(s), 0 repeat(s)" >/dev/null
 sdd log docs/plans/06-st.md "retro: skipped (0 flags)" >/dev/null
 eq "state done skips a retro skipped line" "stage: handover" "$(state_of docs/plans/06-st.md)"
@@ -398,12 +398,14 @@ sdd log docs/plans/07-ua.md "agent: plan-p2 a1 implementation-planner 2026-01-01
 txd="${work}/tx/sess1/subagents"
 mkdir -p "${txd}/workflows"
 a1="${txd}/agent-a1.jsonl"
-printf '%s\n' '{"timestamp":"2026-01-01T09:58:00Z","message":{"id":"m1","model":"mx","usage":{"input_tokens":5,"output_tokens":1,"cache_read_input_tokens":10,"cache_creation_input_tokens":2}}}' > "${a1}"
-printf '%s\n' '{"timestamp":"2026-01-01T09:59:00Z","message":{"id":"m1","model":"mx","usage":{"input_tokens":10,"output_tokens":2,"cache_read_input_tokens":20,"cache_creation_input_tokens":4}}}' >> "${a1}"
-printf '%s\n' '{"timestamp":"2026-01-01T10:30:00Z","message":{"id":"m2","model":"mx","content":"SECRET_CONTENT","usage":{"input_tokens":100,"output_tokens":20,"cache_read_input_tokens":0,"cache_creation_input_tokens":0}}}' >> "${a1}"
-printf '%s\n' '{"timestamp":"2026-01-01T11:30:00Z","message":{"id":"m3","model":"mx","usage":{"input_tokens":1000,"output_tokens":200,"cache_read_input_tokens":0,"cache_creation_input_tokens":0}}}' >> "${a1}"
-printf '%s\n' 'not json {' >> "${a1}"
-printf '%s\n' '{"timestamp":"2026-01-01T11:31:00Z","message":{"id":"m9"}}' >> "${a1}"
+{
+  printf '%s\n' '{"timestamp":"2026-01-01T09:58:00Z","message":{"id":"m1","model":"mx","usage":{"input_tokens":5,"output_tokens":1,"cache_read_input_tokens":10,"cache_creation_input_tokens":2}}}'
+  printf '%s\n' '{"timestamp":"2026-01-01T09:59:00Z","message":{"id":"m1","model":"mx","usage":{"input_tokens":10,"output_tokens":2,"cache_read_input_tokens":20,"cache_creation_input_tokens":4}}}'
+  printf '%s\n' '{"timestamp":"2026-01-01T10:30:00Z","message":{"id":"m2","model":"mx","content":"SECRET_CONTENT","usage":{"input_tokens":100,"output_tokens":20,"cache_read_input_tokens":0,"cache_creation_input_tokens":0}}}'
+  printf '%s\n' '{"timestamp":"2026-01-01T11:30:00Z","message":{"id":"m3","model":"mx","usage":{"input_tokens":1000,"output_tokens":200,"cache_read_input_tokens":0,"cache_creation_input_tokens":0}}}'
+  printf '%s\n' 'not json {'
+  printf '%s\n' '{"timestamp":"2026-01-01T11:31:00Z","message":{"id":"m9"}}'
+} > "${a1}"
 printf '%s\n' '{"timestamp":"2026-01-01T09:00:00Z","message":{"id":"b1","model":"mx","usage":{"input_tokens":7,"output_tokens":3,"cache_read_input_tokens":0,"cache_creation_input_tokens":0}}}' > "${txd}/agent-a2.jsonl"
 printf '%s\n' '{"agentType":"explorer","description":"SECRET_CONTENT"}' > "${txd}/agent-a2.meta.json"
 printf '%s\n' '{"timestamp":"2026-01-01T09:00:00Z","message":{"id":"c1","model":"mx","usage":{"input_tokens":1,"output_tokens":1}}}' > "${txd}/agent-a4.jsonl"
@@ -450,11 +452,11 @@ new_repo repo3
 fx_row() { # plan stage input output cache_read cache_creation
   printf '{"session_id":"s","agent_id":"a%s","agent_type":"implementer","plan":"%s","stage":"%s","model":"mx","input":%s,"output":%s,"cache_read":%s,"cache_creation":%s,"messages":1,"first_ts":null,"last_ts":null}\n' "$1" "$1" "$2" "$3" "$4" "$5" "$6" >> .sdd/usage.jsonl
 }
-write_plan docs/plans/01-a.md done
-write_plan docs/plans/02-b.md done
-write_plan docs/plans/03-c.md done
-write_plan docs/plans/04-d.md done
-write_plan docs/plans/05-e.md done
+write_plan docs/plans/01-a.md "done"
+write_plan docs/plans/02-b.md "done"
+write_plan docs/plans/03-c.md "done"
+write_plan docs/plans/04-d.md "done"
+write_plan docs/plans/05-e.md "done"
 sdd log docs/plans/02-b.md "review iteration 3" >/dev/null
 sdd log docs/plans/04-d.md "review iteration 3" >/dev/null
 sdd log docs/plans/04-d.md "handback: unknown G1" >/dev/null
@@ -506,7 +508,7 @@ new_repo repo4
 cx_row() { # agent session plan(json) stage(json) input output cache_read first_ts last_ts (json)
   printf '{"session_id":"%s","agent_id":"%s","agent_type":"x","plan":%s,"stage":%s,"model":"mx","input":%s,"output":%s,"cache_read":%s,"cache_creation":0,"messages":1,"first_ts":%s,"last_ts":%s}\n' "$2" "$1" "$3" "$4" "$5" "$6" "$7" "$8" "$9" >> .sdd/usage.jsonl
 }
-write_plan docs/plans/08-co.md done
+write_plan docs/plans/08-co.md "done"
 rm -f .sdd/usage.jsonl
 eq "cost no usage file" "cost: no usage data" "$(sdd cost docs/plans/08-co.md)"
 eq "cost no usage file rc 0" "0" "$(rc_of sdd cost docs/plans/08-co.md)"
@@ -532,7 +534,7 @@ cost: critical path implement 15m00s
 cost: unattributed 1 runs, 1 agents, 40000 weighted tokens (sessions 1, untimed 1 not counted)
 cost: main-session tokens not included"
 eq "cost full table" "${cost_exp1}" "${cost_out1}"
-write_plan docs/plans/11-nt.md done
+write_plan docs/plans/11-nt.md "done"
 cx_row a9 s3 '"11"' '"docs"' 0 100 0 null null
 cx_row a10 s3 null null 11 0 0 '"2026-01-01T09:00:00Z"' '"2026-01-01T09:01:00Z"'
 cost_out2="$(sdd cost docs/plans/11-nt.md)"
@@ -545,7 +547,7 @@ cost: critical path n/a
 cost: unattributed 1 runs, 1 agents, 11 weighted tokens (sessions 1, untimed 0 not counted)
 cost: main-session tokens not included"
 eq "cost untimed plan rows print n/a" "${cost_exp2}" "${cost_out2}"
-write_plan docs/plans/12-zs.md done
+write_plan docs/plans/12-zs.md "done"
 cx_row a11 s4 '"12"' '"review"' 0 0 0 '"2026-01-01T10:00:00Z"' '"2026-01-01T10:00:00Z"'
 cost_out3="$(sdd cost docs/plans/12-zs.md)"
 cost_exp3="$(cost_hdr 12)
@@ -558,7 +560,7 @@ cost: unattributed 0 runs, 0 agents, 0 weighted tokens (sessions 1, untimed 0 no
 cost: main-session tokens not included"
 eq "cost zero span and zero tokens" "${cost_exp3}" "${cost_out3}"
 eq "cost outputs have no NaN or Infinity" "" "$(printf '%s\n%s\n%s\n' "${cost_out1}" "${cost_out2}" "${cost_out3}" | grep -o 'NaN\|Infinity' || true)"
-write_plan docs/plans/10-nr.md done
+write_plan docs/plans/10-nr.md "done"
 eq "cost no rows for plan" "cost: no rows for plan 10" "$(sdd cost docs/plans/10-nr.md)"
 eq "cost no rows rc 0" "0" "$(rc_of sdd cost docs/plans/10-nr.md)"
 eq "cost bad args exit 2" "2" "$(rc_of sdd cost)"

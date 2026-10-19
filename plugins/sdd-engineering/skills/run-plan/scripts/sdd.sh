@@ -158,6 +158,8 @@ append_line() {
 make_tree() { # $1 = pin ref or empty; prints the tree sha, never touches .git/index
   local dir idx tree
   dir="$(mktemp -d "${TMPDIR:-/tmp}/sdd-idx.XXXXXX")"
+  # Expanded now on purpose: ${dir} is local and gone by the time the trap fires.
+  # shellcheck disable=SC2064
   trap "rm -rf '${dir}'" EXIT INT TERM
   case "${dir}/" in "${root}/"*) rm -rf "${dir}"; die "TMPDIR is inside the work tree" ;; esac
   idx="${dir}/index"
@@ -446,7 +448,7 @@ cmd_checkpoint() {
 }
 
 cmd_delta() {
-  [ $# -ge 1 ] && [ $# -le 2 ] || die "usage: delta <treeA> [treeB]"
+  if [ $# -lt 1 ] || [ $# -gt 2 ]; then die "usage: delta <treeA> [treeB]"; fi
   local b="${2:-}"
   need_tree "$1"
   if [ -n "${b}" ]; then need_tree "${b}"; fi

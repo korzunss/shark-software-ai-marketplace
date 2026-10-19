@@ -71,9 +71,11 @@ grep_code() {
     | sed "s#^$root/##"
 }
 report() {
-  local rule="$1" out="$2"
+  local rule="$1" out="$2" line
   if [ -n "$out" ]; then
-    echo "[$rule]"; echo "$out" | sed 's/^/  /'; hits=1
+    echo "[$rule]"
+    while IFS= read -r line; do echo "  $line"; done <<< "$out"
+    hits=1
   else
     echo "[$rule] ok"
   fi
