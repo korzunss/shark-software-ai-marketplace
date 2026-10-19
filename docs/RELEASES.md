@@ -10,7 +10,7 @@ A plugin's version is both the **update signal** and the name of its cache folde
 2. `version` in the `marketplace.json` entry;
 3. if neither is set, the commit SHA.
 
-**Our rule:** the version is set **only in `plugin.json`** and is bumped on every change to the plugin. If the version string does not change, users **do not receive** new commits, even with auto-update on. CI enforces this.
+**Our rule:** the version is set **only in `plugin.json`** and is bumped on every change to the plugin. If the version string does not change, users **do not receive** new commits, even with auto-update on. CI enforces this. The one exception is `plugins/<name>/evals/`: eval cases for `claude plugin eval` are never loaded by a session, so changing only them needs no bump.
 
 ## SemVer
 

@@ -1,0 +1,8 @@
+---
+type: tool_used
+tool: Agent
+input_match: 'sdd-engineering:(implementer|test-writer)'
+min: 0
+max: 0
+arm: both
+---
