@@ -11,7 +11,7 @@ A private team marketplace of [Claude Code](https://code.claude.com/docs/en/plug
 
 | Plugin | Version | What it does |
 |---|---|---|
-| `architecture-review` | 1.0.0 | Read-only `architecture-reviewer` agent: checks a diff or module against layer boundaries, PASS/BLOCK |
+| `architecture-review` | 1.1.0 | Read-only `architecture-reviewer` agent: checks a diff or module against layer boundaries, PASS/BLOCK |
 | `engineering-paved-path` | 1.0.0 | Shared engineering skills: onion and frontend architecture, React, Next.js, Fastify, Zod, TypeScript, Drizzle, PostgreSQL, security, Mermaid, insights log |
 | `research-tools` | 1.0.0 | Read-only `researcher` agent: repo and external questions answered with cited evidence |
 | `sdd-engineering` | 1.0.0 | Spec Driven Development: spec → plan → implement → verify with user gates (`/sdd-engineering:run-plan`), plus `workflow-retro` |
@@ -78,6 +78,7 @@ scripts/test/                     tests for the scripts (node --test)
 | [docs/PLUGIN-GUIDELINES.md](docs/PLUGIN-GUIDELINES.md) | Plugin layout, names, paths, variables |
 | [docs/SECURITY.md](docs/SECURITY.md) | Hooks, MCP, scripts, secrets, review |
 | [docs/RELEASES.md](docs/RELEASES.md) | Versioning, releases, rollback, renames |
+| [docs/COST-BASELINE.md](docs/COST-BASELINE.md) | Eval-based cost baseline and the measured `architecture-reviewer` optimization |
 | [docs/CONSUMERS.md](docs/CONSUMERS.md) | Adding the marketplace, authentication, managed settings |
 | [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | A plugin does not install or load |
 | [docs/temp/MARKETPLACE-RESEARCH.md](docs/temp/MARKETPLACE-RESEARCH.md) | The research this repository is based on |

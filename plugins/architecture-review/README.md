@@ -8,15 +8,15 @@ A read-only `architecture-reviewer` agent that checks whether code keeps the pro
 claude plugin install architecture-review@shark-plugins
 ```
 
-The dependency `engineering-paved-path` (the architecture and stack skills the reviewer preloads) installs automatically. The agent becomes available as `architecture-review:architecture-reviewer`.
+The dependency `engineering-paved-path` (the architecture and stack skills the reviewer uses) installs automatically. The agent becomes available as `architecture-review:architecture-reviewer`.
 
 ## Components
 
 | Component | Type | What it does | When to use |
 |---|---|---|---|
-| `architecture-reviewer` | agent (`opus`, `maxTurns` 40; `Read`, `Grep`, `Glob`, `Bash` with a read-only allowlist) | Reviews a diff or a module against boundary checks `A1…A12`, returns findings `F1…` with evidence, a *For fix mode* list and PASS/BLOCK | After implementation and before a PR, in a fresh context; to audit a module's layering |
+| `architecture-reviewer` | agent (`opus`, `maxTurns` 40; `Read`, `Grep`, `Glob`, `Skill`, `Bash` with a read-only allowlist) | Reviews a diff or a module against boundary checks `A1…A12`, returns findings `F1…` with evidence, a *For fix mode* list and PASS/BLOCK | After implementation and before a PR, in a fresh context; to audit a module's layering |
 
-Preloaded skills (from `engineering-paved-path`): `engineering-insights`, `onion-architecture`, `frontend-architecture`, `next-best-practices`, `fastify-best-practices`, `zod`, `typescript-expert`. Stack skills are applied only when the code in scope uses that stack.
+Skills (from `engineering-paved-path`): `onion-architecture` is preloaded into every review. The stack skills `frontend-architecture`, `next-best-practices`, `fastify-best-practices`, `zod` and `typescript-expert` are loaded with the `Skill` tool only when the code in scope uses that stack, so a backend-only review does not pay for frontend rules.
 
 ## Usage
 
@@ -124,7 +124,7 @@ The plugin works standalone in any repository. `sdd-engineering` depends on it: 
 
 - **Read-only by prompt and tools, not by hook.** The agent has no `Edit`/`Write`; its `Bash` allowlist (search tools, read-only git, `depcruise`) is a prompt rule. The report's read-only proof (`git status --porcelain` before and after) shows whether it held. Add `deny` permission rules in your project settings if you need runtime enforcement.
 - Plugin agents ignore `permissionMode`, `hooks` and `mcpServers` frontmatter; this agent needs none of them.
-- The preloaded skills come from `engineering-paved-path`, which ships with `defaultEnabled: false`. If the reviewer's report shows it did not apply those skills, enable the plugin (`/plugin` → `engineering-paved-path` → enable).
+- The skills come from `engineering-paved-path`, which ships with `defaultEnabled: false`. If the reviewer's report shows it did not apply those skills, enable the plugin (`/plugin` → `engineering-paved-path` → enable).
 - The agent never installs `dependency-cruiser`; it uses it only when already installed and configured.
 - It does not review security, style, performance or plan compliance; those concerns appear at most as one *Handoff* line.
 
