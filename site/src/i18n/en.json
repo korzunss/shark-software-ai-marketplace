@@ -1,0 +1,145 @@
+{
+  "meta": {
+    "lang": "en",
+    "title": "{marketplace} · Catalog",
+    "description": "Catalog of plugins, skills, agents and MCP servers in the {marketplace} marketplace for Claude Code.",
+    "noscript": "Searching the catalog requires JavaScript."
+  },
+  "kinds": {
+    "plugin": "plugins", "skill": "skills", "agent": "agents", "command": "commands", "hook": "hooks", "mcp": "MCP", "lsp": "LSP"
+  },
+  "kindBadge": {
+    "plugin": "plugin", "skill": "skill", "agent": "agent", "command": "command", "hook": "hook", "mcp": "mcp", "lsp": "lsp"
+  },
+  "header": {
+    "brand": "Catalog",
+    "searchLabel": "Search the catalog",
+    "searchPlaceholder": "Search the catalog…",
+    "openPalette": "Open command palette",
+    "themeToLight": "Switch to light theme",
+    "themeToDark": "Switch to dark theme",
+    "github": "GitHub ↗"
+  },
+  "home": {
+    "eyebrow": "Marketplace of plugins · skills · agents",
+    "titleLine1": "Find the artifact you need",
+    "titleLine2": "and install it with one copy-paste",
+    "lead": "Client-side fuzzy search over descriptions, frontmatter and markdown bodies. No backend — everything is built statically in CI.",
+    "searchPlaceholder": "Describe what you need — e.g. \"skill for refactoring React\"",
+    "emptyTitle": "The catalog is empty",
+    "emptyText": "There are no plugins yet. Add the first one and it will show up here after the next CI build.",
+    "emptyStart": "Get started",
+    "emptyContributing": "CONTRIBUTING.md",
+    "whatsNew": "What's new",
+    "allReleases": "All releases →",
+    "browseByKind": "Browse by type",
+    "stats": {
+      "plugin": { "one": "plugin", "other": "plugins" },
+      "skill": { "one": "skill", "other": "skills" },
+      "agent": { "one": "agent", "other": "agents" },
+      "command": { "one": "command", "other": "commands" },
+      "mcp": { "one": "MCP server", "other": "MCP servers" }
+    }
+  },
+  "search": {
+    "filters": "Filters",
+    "reset": "Reset",
+    "kind": "Type",
+    "keywords": "Keywords",
+    "author": "Author",
+    "resultsFor": "Results for “{query}”",
+    "browse": "Browse the catalog",
+    "count": { "one": "{count} artifact", "other": "{count} artifacts" },
+    "sort": "Sort by",
+    "sortRelevance": "Relevance",
+    "sortName": "Name",
+    "sortUpdated": "Recently updated",
+    "noResultsTitle": "Nothing found",
+    "noResultsText": "Try resetting the filters or changing the query.",
+    "resetFilters": "Reset filters"
+  },
+  "copy": {
+    "install": "Copy install",
+    "copied": "Copied ✓",
+    "short": "Copy",
+    "shortCopied": "✓",
+    "toast": "Copied to clipboard"
+  },
+  "card": {
+    "open": "Open",
+    "openLabel": "Open {name}"
+  },
+  "plugin": {
+    "back": "← Back",
+    "updated": "updated {date}",
+    "github": "View on GitHub ↗",
+    "external": "This plugin comes from an external source, so its contents are not shown here.",
+    "components": "What's inside",
+    "dependencies": "Dependencies",
+    "readme": "README",
+    "changelog": "Changelog",
+    "loading": "Loading…"
+  },
+  "risk": {
+    "executesCode": "Runs code",
+    "network": "Network access",
+    "needsSecrets": "Needs secrets",
+    "safe": "Instructions only, no code"
+  },
+  "artifact": {
+    "breadcrumbs": "Breadcrumbs",
+    "catalog": "Catalog",
+    "tools": "Tools / permissions",
+    "source": "Source ↗",
+    "docs": "Documentation",
+    "details": {
+      "event": "Event",
+      "matcher": "Matcher",
+      "runs": "Runs",
+      "transport": "Transport",
+      "command": "Command",
+      "url": "URL",
+      "envVars": "Environment variables",
+      "languages": "Languages",
+      "model": "Model",
+      "arguments": "Arguments"
+    },
+    "describe": {
+      "hooks": "Hooks on events: {events}.",
+      "mcpLocal": "Local MCP server (stdio): {command}",
+      "mcpRemote": "Remote MCP server ({transport}): {url}",
+      "lsp": "Language server for {languages}.",
+      "lspNoLanguages": "Language server."
+    }
+  },
+  "whatsNew": {
+    "back": "← Home",
+    "title": "What's new",
+    "rss": "Subscribe · RSS"
+  },
+  "guide": {
+    "back": "← Home",
+    "title": "Connect the marketplace",
+    "lead": "Three steps. Add the marketplace as a source first, then install individual plugins.",
+    "steps": [
+      { "title": "Add the marketplace as a source", "desc": "Registers the catalog repository in your Claude Code.", "cmd": "/plugin marketplace add {repo}" },
+      { "title": "Install a plugin", "desc": "Install a specific plugin by name from this marketplace.", "cmd": "/plugin install {plugin}@{marketplace}" },
+      { "title": "Keep it up to date", "desc": "Refresh the list of sources and the plugins themselves from time to time.", "cmd": "/plugin marketplace update" }
+    ],
+    "pluginPlaceholder": "<plugin>",
+    "noteTitle": "marketplace update vs plugin update.",
+    "noteText": "The first refreshes the list of sources (where plugins come from); the second updates the code of an installed plugin."
+  },
+  "palette": {
+    "label": "Go to artifact",
+    "placeholder": "Go to artifact…",
+    "esc": "ESC",
+    "empty": "Nothing found",
+    "plugin": "plugin"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "text": "The artifact may have been renamed or removed from the catalog.",
+    "home": "Go home"
+  }
+}
