@@ -6,16 +6,83 @@
     "name": "Shark Software",
     "url": "https://github.com/korzunss"
   },
+  "renames": {
+    "team-conventions": null
+  },
   "plugins": [
     {
-      "name": "team-conventions",
-      "source": "./plugins/team-conventions",
-      "description": "Baseline team conventions: code style, commit messages and pull request descriptions.",
+      "name": "architecture-review",
+      "source": "./plugins/architecture-review",
+      "description": "Read-only architecture-reviewer agent that checks a diff or module against the project's layer boundaries and returns evidence-backed findings with a PASS/BLOCK verdict.",
       "category": "development",
       "keywords": [
-        "conventions",
-        "code-style",
-        "commits"
+        "architecture",
+        "code-review",
+        "onion-architecture",
+        "agent",
+        "read-only"
+      ]
+    },
+    {
+      "name": "engineering-paved-path",
+      "source": "./plugins/engineering-paved-path",
+      "description": "Shared engineering skills for TypeScript web projects: onion backend layering, frontend architecture, React, Next.js, Fastify, Zod, TypeScript, Drizzle, PostgreSQL, OWASP security, Mermaid and a project insights log.",
+      "category": "development",
+      "keywords": [
+        "skills",
+        "architecture",
+        "onion-architecture",
+        "react",
+        "nextjs",
+        "fastify",
+        "zod",
+        "typescript",
+        "drizzle",
+        "postgresql",
+        "security",
+        "mermaid"
+      ]
+    },
+    {
+      "name": "research-tools",
+      "source": "./plugins/research-tools",
+      "description": "Read-only researcher agent that answers repo and external questions with cited evidence and an explicit list of what it could not establish.",
+      "category": "productivity",
+      "keywords": [
+        "research",
+        "agent",
+        "read-only",
+        "citations",
+        "codebase-questions"
+      ]
+    },
+    {
+      "name": "sdd-engineering",
+      "source": "./plugins/sdd-engineering",
+      "description": "Spec Driven Development: spec → plan → implement → verify with user gates, plus a per-plan workflow retro.",
+      "category": "development",
+      "keywords": [
+        "sdd",
+        "spec-driven-development",
+        "planning",
+        "agents",
+        "workflow",
+        "code-review",
+        "testing"
+      ]
+    },
+    {
+      "name": "security-review",
+      "source": "./plugins/security-review",
+      "description": "Read-only security-reviewer agent and appsec-review skill that trace untrusted data from source to sink and return evidence-backed findings with a PASS/BLOCK verdict.",
+      "category": "security",
+      "keywords": [
+        "security",
+        "appsec",
+        "code-review",
+        "owasp",
+        "llm-security",
+        "agent"
       ]
     }
   ]

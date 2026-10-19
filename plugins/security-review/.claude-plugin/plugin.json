@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "security-review",
+  "displayName": "Security Review",
+  "version": "1.0.0",
+  "description": "Read-only security-reviewer agent and appsec-review skill that trace untrusted data from source to sink and return evidence-backed findings with a PASS/BLOCK verdict.",
+  "author": { "name": "Shark Software", "url": "https://github.com/korzunss" },
+  "homepage": "https://github.com/korzunss/shark-software-ai-marketplace/tree/main/plugins/security-review",
+  "repository": "https://github.com/korzunss/shark-software-ai-marketplace",
+  "keywords": ["security", "appsec", "code-review", "owasp", "llm-security", "agent"],
+  "dependencies": [{ "name": "engineering-paved-path", "version": "^1.0.0" }]
+}

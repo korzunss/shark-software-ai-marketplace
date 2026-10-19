@@ -7,7 +7,11 @@
 *                               @korzunss
 
 # 2. Per-plugin owners (one line per plugin)
-/plugins/team-conventions/      @korzunss
+/plugins/architecture-review/    @korzunss
+/plugins/engineering-paved-path/ @korzunss
+/plugins/research-tools/         @korzunss
+/plugins/sdd-engineering/        @korzunss
+/plugins/security-review/        @korzunss
 
 # 3. Catalog, CI, tooling and security-sensitive files
 /.claude-plugin/                @korzunss

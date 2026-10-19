@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "sdd-engineering",
+  "displayName": "SDD Engineering",
+  "version": "1.0.0",
+  "description": "Spec Driven Development: spec → plan → implement → verify with user gates, plus a per-plan workflow retro.",
+  "author": { "name": "Shark Software", "url": "https://github.com/korzunss" },
+  "homepage": "https://github.com/korzunss/shark-software-ai-marketplace/tree/main/plugins/sdd-engineering",
+  "repository": "https://github.com/korzunss/shark-software-ai-marketplace",
+  "keywords": ["sdd", "spec-driven-development", "planning", "agents", "workflow", "code-review", "testing"],
+  "dependencies": [
+    { "name": "engineering-paved-path", "version": "^1.0.0" },
+    { "name": "research-tools", "version": "^1.0.0" },
+    { "name": "architecture-review", "version": "^1.0.0" },
+    { "name": "security-review", "version": "^1.0.0" }
+  ]
+}
