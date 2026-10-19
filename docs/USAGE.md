@@ -15,6 +15,7 @@ A short, task-by-task guide for the `shark-plugins` marketplace. Background and 
 | Install a plugin | `claude plugin install <plugin>@shark-plugins` | `/plugin install <plugin>@shark-plugins` |
 | See what's installed | `claude plugin list` | `/plugin` → **Installed** |
 | Get the latest versions | `claude plugin marketplace update shark-plugins` | `/plugin` → **Marketplaces** |
+| Use the stable channel | `claude plugin marketplace add korzunss/shark-software-ai-marketplace#stable` | see [5a](#5a-switch-to-the-stable-channel-and-back) |
 | Update one plugin | `claude plugin update <plugin>@shark-plugins` | then `/reload-plugins` |
 | Turn a plugin off for a while | `claude plugin disable <plugin>@shark-plugins` | `/plugin` → **Installed** |
 | Turn it back on | `claude plugin enable <plugin>@shark-plugins` | `/plugin` → **Installed** |
@@ -69,14 +70,46 @@ Each plugin's README in [`plugins/`](../plugins/) lists its skills and agents wi
 
 ## 5. Keep plugins up to date
 
-Auto-update is **off** for this marketplace by default. Turn it on once in `/plugin` → **Marketplaces** → `shark-plugins` → **Enable auto-update**. Or update by hand:
+Auto-update is **off** for this marketplace by default. Turn it on once in `/plugin` → **Marketplaces** → `shark-plugins` → **Enable auto-update**. Or update by hand, in two separate steps:
 
-```bash
-claude plugin marketplace update shark-plugins
-claude plugin update sdd-engineering@shark-plugins
-```
+| Step | Command | What it changes | What it doesn't change |
+|---|---|---|---|
+| 1. Update the catalog | `claude plugin marketplace update shark-plugins` | Your local copy of the catalog: new plugins, new versions, descriptions. It prints `Successfully updated marketplace: shark-plugins` | Installed plugins. `claude plugin list` still shows the old versions |
+| 2. Update a plugin | `claude plugin update sdd-engineering@shark-plugins` | The installed plugin, to the version the catalog now offers | Plugins you didn't name |
+
+Run step 1 first, so step 2 sees the new version. The new version loads in the next session, or after `/reload-plugins` in a running one. A plugin gets a new copy only when its `version` changes; when it is already current, the update prints `… is already at the latest version`.
 
 What changed: each plugin's `CHANGELOG.md` and the [releases](https://github.com/korzunss/shark-software-ai-marketplace/releases).
+
+## 5a. Switch to the stable channel and back
+
+The marketplace has two channels in the same repository:
+
+| Channel | Marketplace name | Source | What it serves |
+|---|---|---|---|
+| Latest | `shark-plugins` | `korzunss/shark-software-ai-marketplace` (the `main` branch) | Every released version, right after it merges |
+| Stable | `shark-plugins-stable` | `korzunss/shark-software-ai-marketplace#stable` (the `stable` branch) | Only versions promoted after their evals passed |
+
+Use one channel at a time: both carry plugins with the same names, so installing from both gives two copies of every skill and agent.
+
+Switch to stable (for example, to go back to the last verified version after a bad release):
+
+```bash
+claude plugin marketplace remove shark-plugins          # also uninstalls its plugins
+claude plugin marketplace add korzunss/shark-software-ai-marketplace#stable
+claude plugin install sdd-engineering@shark-plugins-stable
+claude plugin list                                      # sdd-engineering 1.0.0 and its dependencies, @shark-plugins-stable
+```
+
+Switch back to latest:
+
+```bash
+claude plugin marketplace remove shark-plugins-stable
+claude plugin marketplace add korzunss/shark-software-ai-marketplace
+claude plugin install sdd-engineering@shark-plugins
+```
+
+Removing a marketplace also deletes the saved options and data of the plugins installed from it. Restart the session (or run `/reload-plugins`) after switching. A project that commits `.claude/settings.json` (section 6) names the channel there: use `"ref": "stable"` in the source and `@shark-plugins-stable` in `enabledPlugins`. Details: [RELEASES.md → Stable channel](RELEASES.md#stable-channel).
 
 ## 6. Enable plugins for a whole project
 

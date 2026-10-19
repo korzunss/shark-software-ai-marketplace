@@ -142,9 +142,50 @@ A rollback reaches users only after a merge and their next update. To stop a har
 
 Claude Code has no "deprecated" state. Warn about a removal in advance through the `description` and the CHANGELOG.
 
-## Stable / beta channels
+## Stable channel
 
-If a beta channel is needed, create a **separate marketplace** with a different `name` (for example `shark-plugins-beta`) pointing at a `beta` branch of this repo. Versions in the two channels must differ (`1.5.0-beta.1` vs `1.4.2`), otherwise users stay on the cached copy.
+Claude Code has no release-channel concept: one marketplace serves one version of each plugin. A channel is therefore a **second marketplace**, with its own `name`, on another branch of this repo ([Run release channels](https://code.claude.com/docs/en/plugins/host-marketplace#run-release-channels)).
+
+| Channel | Marketplace `name` | Branch | Add with | Receives |
+|---|---|---|---|---|
+| Latest | `shark-plugins` | `main` | `korzunss/shark-software-ai-marketplace` | every release, right after the merge |
+| Stable | `shark-plugins-stable` | `stable` | `korzunss/shark-software-ai-marketplace#stable` | only versions promoted after their evals passed |
+
+The `stable` branch is a copy of the plugin trees at verified release tags. It differs from `main` only in the marketplace `name` and `description`, its README banner, and which plugin versions it holds. It started at `main` 4d1f1a2, where every plugin is 1.0.0.
+
+- The names must differ: Claude Code identifies a marketplace by its `name`, so a user can't register two with the same name.
+- `#stable` pins the marketplace to the branch. `claude plugin marketplace update shark-plugins-stable` follows the latest commit of `stable`, not `main`.
+- Plugins are cached per marketplace (`~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/`), so `sdd-engineering` 1.0.0 from stable never collides with any copy from `shark-plugins`.
+- Users should install from one channel at a time: both carry the same plugin names, so two installs give two copies of every skill and agent. Switching is in [USAGE.md → 5a](USAGE.md#5a-switch-to-the-stable-channel-and-back).
+
+### Dependencies on the stable channel
+
+The root plugin a user installs (for example `sdd-engineering`) comes from the `stable` branch tree. Its **dependencies** are resolved like on any channel: a range such as `^1.0.0` installs the **highest `<plugin>--v<version>` tag** in the repository that satisfies it ([How a constraint resolves against tags](https://code.claude.com/docs/en/plugins/dependencies#how-a-constraint-resolves-against-tags)). Tags are repository-wide, not per branch, so once `architecture-review--v1.1.0` is released on `main`, stable's `sdd-engineering` 1.0.0 also gets `architecture-review` 1.1.0. That is a released, CI-checked version inside the range the plugin declared, which is what SemVer promises; `claude plugin list` shows it as `1.1.0-<sha>`.
+
+To hold a dependency at an exact version on stable, tighten the range in the stable copy of the dependent plugin's `plugin.json` (`"version": "=1.0.0"`). A range in a marketplace entry does not override `plugin.json`. Do this only on purpose: it makes the stable `plugin.json` differ from the tagged release.
+
+### Promote a version to stable
+
+Promote only a version that has a release tag on `main` and whose evals passed (see the plugin's `evals/README.md`):
+
+```bash
+git switch stable && git pull
+git rm -r --quiet plugins/<plugin>
+git checkout <plugin>--v<version> -- plugins/<plugin>    # the tree exactly as released
+# README.md: set the plugin's Version cell in the catalog table to <version>
+claude plugin validate . --strict && npm test
+git commit -am "chore(stable): promote <plugin> <version>"
+# open a pull request into stable; after the merge users get it with
+# `claude plugin marketplace update shark-plugins-stable` + `claude plugin update <plugin>@shark-plugins-stable`
+```
+
+A promotion always moves a plugin forward. To take a bad version off stable, promote the previous good tag's contents under a new version through the normal [rollback](#rollback) on `main`, then promote that.
+
+The Release and Site workflows run only on `main`, so the `stable` branch creates no tags and doesn't deploy the catalog site. The Validate workflow runs on pull requests into `stable` as on any other base.
+
+### A beta channel
+
+A beta channel works the same way: a marketplace named `shark-plugins-beta` on a `beta` branch. Its versions must differ from the other channels' (`1.5.0-beta.1` vs `1.4.2`), otherwise users stay on the cached copy, and dependency ranges match a pre-release only when they opt in (`^1.5.0-0`).
 
 ## Changes to the marketplace itself
 

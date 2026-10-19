@@ -4,6 +4,7 @@ A private team marketplace of [Claude Code](https://code.claude.com/docs/en/plug
 
 - Marketplace name: **`shark-plugins`**
 - Plugin id: `<plugin>@shark-plugins`
+- Stable channel: **`shark-plugins-stable`** on the `stable` branch, only versions whose evals passed ([how to switch](docs/USAGE.md#5a-switch-to-the-stable-channel-and-back), [how it works](docs/RELEASES.md#stable-channel))
 
 > **New here?** [docs/USAGE.md](docs/USAGE.md) shows how to add the marketplace, install, use, update and remove plugins, all on one page.
 
