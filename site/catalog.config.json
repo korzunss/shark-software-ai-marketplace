@@ -1,0 +1,4 @@
+{
+  "$comment": "Plugins listed here stay installable from the marketplace but are left out of the site and its catalog.json. Names must match .claude-plugin/marketplace.json.",
+  "hiddenPlugins": []
+}
