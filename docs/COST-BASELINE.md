@@ -29,6 +29,8 @@ All numbers come from `claude plugin eval` results and their traces, summarized 
 
 **Quality gate.** Pass rate 100% on 5 × 5 runs, and **no critical false negatives**: a missed `BLOCK` on either positive CRITICAL case fails the optimization, whatever it saves.
 
+**Cost per successful workflow.** One workflow is one eval run: the main session dispatches the reviewer, the reviewer reviews the diff and returns its report. It counts as successful when every grader passes. Cost per successful workflow is the total model cost of all runs divided by the number of passed runs, so failed runs are paid for by the successful ones.
+
 **Decision rule.** The change passes only if the gate stays green and cost or latency drops by more than run-to-run noise. A difference inside the min–max ranges of both runs counts as noise.
 
 ## Baseline: `architecture-review` 1.0.0
@@ -81,6 +83,8 @@ Critical errors: none. Cost by model: opus $4.42, sonnet $1.80.
 |---|---|---|---|---|
 | Pass rate | 100% (25/25) | 100% (25/25) | — | gate green |
 | Critical false negatives | 0 | 0 | — | gate green |
+| **Cost per successful workflow** (total cost ÷ passed runs) | **$0.324** ($8.09 ÷ 25) | **$0.249** ($6.23 ÷ 25) | **−23%** | **yes** |
+| Same, including LLM graders | $0.324 | $0.250 | −23% | yes |
 | Cost | $0.32 | $0.25 | **−22%** | **yes**: in every case the 1.1.0 maximum is below the 1.0.0 minimum |
 | Subagent (opus) cost, total of 25 | $6.25 | $4.42 | −29% | yes |
 | Main session (sonnet) cost, total of 25 | $1.83 | $1.80 | −2% | no, unchanged as expected |
@@ -96,13 +100,13 @@ Limits of this result:
 
 - The fixture is a TypeScript backend with no React, Next.js, Fastify-schema or Zod changes, so no on-demand `Skill` load was triggered in the 25 runs. The saving on a frontend diff will be smaller, because the agent then loads the skill it needs. These evals do not measure that case.
 - 5 runs per case on one machine. Enough to separate a 22% cost drop from noise; not enough to claim a latency change in either direction.
-- Grader cost (haiku, $0.01–0.02 per run) is excluded from both sides.
+- Grader cost (haiku) is excluded from both sides except in the row that says otherwise; it is under $0.01 per run here.
 
 ## Reference baseline: `sdd-engineering`
 
 No optimization here; recorded so later changes have something to compare to. Main session `sonnet`; `spec-creator` runs on `opus`.
 
-**1.0.0** (`70f0c45`, 5 runs per case, total $3.68): pass rate 95% (19/20).
+**1.0.0** (`70f0c45`, 5 runs per case, total $3.68): pass rate 95% (19/20), cost per successful workflow $0.194 ($3.68 ÷ 19).
 
 | Case | Pass | Cost, $ | Latency, s | API calls | Tool calls |
 |---|---|---|---|---|---|
@@ -113,7 +117,7 @@ No optimization here; recorded so later changes have something to compare to. Ma
 
 The failed run is environmental, not a false negative: the eval sandbox denied the Bash command that copies the index templates, and the skill stopped and asked instead of working around it, as its rules require.
 
-**1.1.0** (`37a73ab`, 3 runs per case, total $2.73): pass rate 100% (15/15). The new case `intake-writes-config-proposal` fails on 1.0.0 (0/3, $0.14 per run: 1.0.0 never writes `.sdd/config.proposed.json`) and passes on 1.1.0 (3/3, $0.14, 15 s). The other four cases keep their 1.0.0 cost and latency within noise.
+**1.1.0** (`37a73ab`, 3 runs per case, total $2.73): pass rate 100% (15/15), cost per successful workflow $0.182 ($2.73 ÷ 15). Not comparable with 1.0.0 as an optimization: the case set differs (1.1.0 adds a cheap case). The new case `intake-writes-config-proposal` fails on 1.0.0 (0/3, $0.14 per run: 1.0.0 never writes `.sdd/config.proposed.json`) and passes on 1.1.0 (3/3, $0.14, 15 s). The other four cases keep their 1.0.0 cost and latency within noise.
 
 ## Invalid first attempt
 
